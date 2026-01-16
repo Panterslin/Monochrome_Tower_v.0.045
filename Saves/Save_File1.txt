@@ -1,0 +1,1 @@
+{"HP": 100, "Sanity": 130, "Max_HP": 100, "Max_Sanity": 150, "Current_Floor": 1, "Current_Room": 1, "Level": 1}
