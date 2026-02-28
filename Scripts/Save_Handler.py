@@ -1,42 +1,27 @@
 import json
 import os
 from os.path import join
-Clear_Data={
-    'HP': 100,
-    'Sanity': 150,
-    'Max_HP': 100,
-    'Max_Sanity': 150,
-    'Current_Floor': 1,
-    'Current_Room': 1,
-    'Level': 1
-}
-Default_Data={
+def generate_data():
+    dictio={
         'HP': 100,
         'Sanity': 150,
         'Max_HP': 100,
         'Max_Sanity': 150,
+        'Defense':0,
+        'Money':0,
         'Current_Floor': 1,
         'Current_Room': 1,
-        'Level': 1
-}
-Player_Data={
-        'HP': 100,
-        'Sanity': 150,
-        'Max_HP': 100,
-        'Max_Sanity': 150,
-        'Current_Floor': 1,
-        'Current_Room': 1,
-        'Level': 1
+        'Level': 1,
+        'Experience': 0,
+        'Items':[],
+        'Corridor':[None,None,None]
     }
-Player_Data2={
-        'HP': 100,
-        'Sanity': 150,
-        'Max_HP': 100,
-        'Max_Sanity': 150,
-        'Current_Floor': 1,
-        'Current_Room': 1,
-        'Level': 1
-}
+    return dictio
+
+Clear_Data=generate_data()
+Default_Data=generate_data()
+Player_Data=generate_data()
+Player_Data2=generate_data()
 
 def delete_data(savefile_index:int):
     with open(join('../Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:

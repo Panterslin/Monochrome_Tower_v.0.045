@@ -1,5 +1,6 @@
 from Game_Data import AnimatedObject,SupportVariables,random
 from Settings import *
+import Settings
 class Weapon(AnimatedObject):
     def __init__(self,damage, accuracy, image_name='',image_folder_name='',attack_speed=2, weight=50,x=WINDOW_WIDTH/2.5,y=WINDOW_HEIGHT/2.5):
         super().__init__(image_folder_name,image_name,x,y)
@@ -23,7 +24,6 @@ class Weapon(AnimatedObject):
         self.borders = [pygame.Surface((5,50)).get_frect(topleft=(230,500)),pygame.Surface((5,50)).get_frect(topright=(685,500))]
         self.end_zone = False
         #self.create_borders()
-
     def create_borders(self,initial_borders=False):
         if initial_borders:
             for i in self.border_sur:
@@ -37,8 +37,6 @@ class Weapon(AnimatedObject):
         self.border_sur = [left_sur,right_sur]
         self.borders = [left_rect,right_rect]
         self.border_sur[0].fill('red')
-        #screen.blit(self.border_sur[1],right_rect)
-        #screen.blit(self.border_sur[0],left_rect)
     def collide(self):
         border_hit = any(self.hit_mark.colliderect(i) for i in self.borders)
         if border_hit :
@@ -47,7 +45,7 @@ class Weapon(AnimatedObject):
     def player_attack(self,enemy,attacked=True,delta=None)->int:
         value = 5 + (self.weight / 10 * (self.swings + 2))
         if delta is None:
-            delta = dt# ensures that the hitmark won't go off bounds
+            delta = Settings.dt# ensures that the hitmark won't go off bounds
         if self.deal_damage > self.damage * self.attack_speed:
             self.deal_damage = 0
         pygame.draw.rect(screen, 'black', (230, 500, 455, 50))
@@ -113,7 +111,7 @@ class Weapon(AnimatedObject):
             self.hit_mark.right = self.borders[1].right -10
         else:
             self.hit_mark.x += (((self.weight / 10) + (
-                        self.weight / 10) * self.swings) * self.hit_mark_direction) * dt * 70
+                        self.weight / 10) * self.swings) * self.hit_mark_direction) * delta * 70
         if not self.pressed and self.clicked:
             self.clicked=False
         return self.turn
@@ -127,12 +125,11 @@ class Weapon(AnimatedObject):
         self.deal_damage=0
         self.save_hitbox = random.randint(int(230 + self.accuracy / 2), int(600 - self.accuracy / 2))
         self.create_borders(True)#create default borders
-        SupportVariables.clicked = False
+        self.clicked = False
         print("Start of round")
-    def inflict_damage(self,enemy,enemy_damaged=False)->int:
-        if not enemy_damaged:
-            enemy.hp -= self.deal_damage
-            enemy_damaged=True
-        return self.deal_damage
-RustyBlade = Weapon(25,50,'RustyBlade','../Weapons',3,5,WINDOW_WIDTH/2.5,WINDOW_HEIGHT-450)
+    def inflict_damage(self,enemy):
+        if self.deal_damage >0:
+            enemy.hp -= self.damage
+            self.deal_damage=0
+RustyBlade = Weapon(25,50,'RustyBlade','../Weapons',3,50,WINDOW_WIDTH/2.5,WINDOW_HEIGHT-450)
 Current_Weapon = RustyBlade

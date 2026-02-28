@@ -1,22 +1,35 @@
-from Game_Data import *
-from Enemies import Enemies,EnemyAttack,Attack_board
+
+"""from Game_Data import *
+from Enemies import Enemies,EnemyAttackBoard
 from Save_Handler import save_data,load_data,update_data,Player_Data
-from Scripts.Items import Equipment_Items
-from Weapons import Current_Weapon
-from pygame import SCALED, FULLSCREEN, DOUBLEBUF
-from Items import Notes,OneTimeUseItems
-from Groups import *
+from Scripts import Items
+from Weapons import Current_Weapon"""
+from pygame import SCALED, FULLSCREEN
+from Items import Notes
+from LevelHandler import *
+from EventScenes import *
+from BattleHandler import *
+import EventScenes
 import time
 """Timers"""
 """display"""
 import Settings
 from Settings import Fullscreen
 pygame.init()
+Level = Levels['floor1']()
 #Temporary var for checking if currently playing on save file (remove later)
 Game_ID=0
-def restart():
-    Game_=Game()
-    Game_.run()
+def restart(game):
+    for item in Items_group:
+        item.kill()
+    for slot in Inventory_slots:
+        slot.occupied = False
+    EventScenes.Active_Riddles = Riddles.copy()
+    global Level
+    Game_.Player.reset_stats()
+    Level = Levels['floor1']()
+    game = Game()
+    game.run()
 
 #from Enemies import
 """Game_States"""
@@ -27,29 +40,44 @@ class Scene:
 class End(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display,scene_manager)
+
     def run(self):
+
         victory_label.update()
         global Game_ID
         delete_data(Game_ID)
         if not SupportVariables.click_checker:
             SupportVariables.click_checker = True
             if return_menu.update(True):
+                restart(Game_)
                 self.scene_manager.set_scene('Menu')
         else:
             if return_menu.update(False):
+                restart(Game_)
                 self.scene_manager.set_scene('Menu')
 class Menu(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
         self.cursor = Cursor()
-        self.attack_board = EnemyAttack()
+        self.attack_board = EnemyAttackBoard('',self.cursor,2)
+        self.attack_board.image = screen
+        self.attack_board.rect = screen.get_frect(topleft=(0, 0))
+        for border,sur in zip(self.attack_board.board_border,self.attack_board.board_border_surfaces):
+            sur.set_alpha(0)
+            self.attack_board.board_border_surfaces.remove(sur)
+            self.attack_board.board_border.remove(border)
+            sur.set_alpha(0)
+        for sur in self.attack_board.board_border_surfaces:
+            sur.set_alpha(0)
         self.Timer = Timer()
         self.title_label = title_lbl
+        self.label = None
     def run(self):
+
         self.attack_board.update(Settings.dt)
-        self.title_label.update()
-        self.cursor.update(Cursor.show,Attack_board.rect)
-        if self.cursor.collide_with_projectiles(Attack_board.projectiles):
+        self.title_label.update(lambda label: label.dynamic_render())
+        self.cursor.update(Cursor.show,self.attack_board.rect)
+        if self.cursor.collide_with_projectiles(self.attack_board.projectiles):
             self.cursor.player_cursor_death()
         global Game_ID
         SupportVariables.battle_started=False
@@ -60,11 +88,23 @@ class Menu(Scene):
             Game_ID=0
             self.scene_manager.Game_Running = True
             print("Button Pressed")
-            self.scene_manager.set_scene('Corridor')
+            self.label = AppearingLabel(0.2, "VerminNest I3", 'white',WINDOW_WIDTH/2, WINDOW_HEIGHT / 2-50, 120, 'PixelFont.ttf',
+                           (800, 120), (80, 90))
+
             Game_.Player.reset_stats()
             print(Default_Data)
+
         if info.update():
             print("info")
+        if self.label is not None:
+            if self.label.dynamic_render(False,True,True):
+                self.scene_manager.set_scene('Corridor')
+                global Level
+                Level = Levels['floor1']()
+                screen.fill('black')
+            else:
+                screen.fill('black')
+                self.label.dynamic_render(False,True,True)
 class Corridor(Scene):
     def __init__(self, display, scene_manager,player):
         super().__init__(display, scene_manager)
@@ -72,22 +112,53 @@ class Corridor(Scene):
         self.ui = Base_UI
         self.room_score = room_score
         self.floor_score = floor_score
+        self.enemy=None
+        SupportVariables.click_checker = False
+        SupportVariables.clicked = False
+        global Level
+        self.level = Level if Level is not None else None
         print('Corridor Instantiated')
         self.player.Data['Max_HP'] = hp_bar.create_bar(self.player.Data['HP'], self.player.Data['Max_HP'])
         self.player.Data['Max_Sanity'] = sanity_bar.create_bar(self.player.Data['Sanity'],
                                       self.player.Data['Max_Sanity'])
         print(self.player.Data['Sanity'])
-        create_corridor(False)
+        #create_corridor(False)
+        pygame.mouse.set_visible(True)
+        global Game_ID
+        self.level.generate_corridor()
+        self.level.update() if self.level is not None else None
     def run(self):
+        pygame.mouse.set_visible(True)
         Vermin_I_Deco.animate()
-        Vermin_I_Deco.animation_play(14, 7, '', 'topleft', Settings.dt)
+        Vermin_I_Deco.animation_play(14, 2, '', 'topleft', Settings.dt)
         self.ui.update()
         room_score.dynamic_update(self.player.Data['Current_Room'])
         floor_score.dynamic_update(self.player.Data['Current_Floor'])
-        scene= create_corridor(True)
-        if scene=='Battle':
-            self.scene_manager.create_scene()
-        self.scene_manager.set_scene(scene)
+        level_update_result = self.level.update()
+        if level_update_result is not None:
+            if level_update_result[1] == 'Battle':
+                self.scene_manager.instantiate = True
+                self.scene_manager.set_scene('Battle')
+                SupportVariables.door=level_update_result[0]
+            elif level_update_result[1] == 'Bile':
+                SupportVariables.door=level_update_result[0]
+                self.scene_manager.create_scene()
+                self.scene_manager.set_scene('Bile')
+            elif level_update_result[1] == 'Fireplace':
+                self.scene_manager.create_scene()
+                self.scene_manager.set_scene('Fireplace')
+            elif level_update_result[1] == 'Riddle':
+                self.scene_manager.create_scene()
+                self.scene_manager.set_scene('Riddle')
+            else:
+                #self.scene_manager.set_scene(self.level.generate_scene())
+                print(self.level.generate_scene())
+                self.scene_manager.instantiate = True
+                self.enemy = 'Rat'
+                SupportVariables.door='Rat'
+                self.scene_manager.set_scene('Battle')
+        for item in Items_group:
+            item.unconditional_update()
         self.player.Max_HP = hp_bar.create_bar(self.player.Data['HP'], self.player.Data['Max_HP'])
         self.player.Max_Sanity = sanity_bar.create_bar(self.player.Data['Sanity'], self.player.Data['Max_Sanity'])
         Current_Weapon.animate()
@@ -95,7 +166,11 @@ class Corridor(Scene):
 class Death(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
+        self.death = ImageObject('../Scenes', 'Death', 100, 400)
+        self.death.image = pygame.transform.scale_by(self.death.image,2)
+        self.death.rect = self.death.image.get_frect()
     def run(self):
+        screen.blit(self.death.image, self.death.rect)
         death_lbl.update()
         global Game_ID
         delete_data(Game_ID)
@@ -104,122 +179,25 @@ class Death(Scene):
             SupportVariables.click_checker = True
             if return_menu.update(True):
                 self.scene_manager.set_scene('Menu')
-                restart()
+                restart(Game_)
         else:
             if return_menu.update(False):
                 self.scene_manager.set_scene('Menu')
-                restart()
-class Battle(Scene):
-    def __init__(self,display,scene_manager, player, enemy):
-        super().__init__(display,scene_manager)
-        self.player = player
-        self.enemy = enemy
-        self.enemy_killed=False
-        self.battle_state="Pre_round"
-        self.turn_check=0
-        self.attack_board = EnemyAttack()
-        self.cursor = Cursor()
-    def run(self):
-        if Current_Weapon.clicked and not pygame.mouse.get_pressed()[0]:
-            Current_Weapon.clicked = False
-        if self.player.Data['HP']<=0:
-            self.scene_manager.set_scene('Death')
-            self.battle_state="Pre_round"
-            SupportVariables.clicked=False
-        """Sprites setup"""
-        Vermin_I_Deco.animate()
-        Vermin_I_Deco.animation_play(14,7,'','topleft',Settings.dt)
-        room_score.dynamic_update(self.player.Data['Current_Room'])
-        floor_score.dynamic_update(self.player.Data['Current_Floor'])
-        self.enemy.update()
-        self.enemy.animate() if not self.enemy.is_animating and not self.enemy.hp<=0 else None
-        self.enemy.animation_play(2, 2.5, '', 'center', Settings.dt)
-        Base_UI.update()
-        self.player.Data['Max_HP']=hp_bar.create_bar(self.player.Data['HP'], self.player.Data['Max_HP'])
-        self.player.Data['Max_Sanity']=sanity_bar.create_bar(self.player.Data['Sanity'], self.player.Data['Max_Sanity'])
-        """Battle States"""
-        if self.battle_state == "Pre_round":
-            pygame.mouse.set_visible(True)
-            if attack_button.update():
-                self.turn_check=0
-                print(SupportVariables.door)
-                self.battle_state = 'Battle_init'
-        elif self.battle_state == 'Battle_init':
-            Current_Weapon.init_player_attack()
-            Current_Weapon.player_attack(self.enemy,False, Settings.dt)
-            self.battle_state = 'Battle_start'
-        elif self.battle_state == 'Defense':
-            if self.attack_board.update(Settings.dt): #successful defense
-                self.battle_state = 'Pre_round'
-                pygame.mouse.set_visible(True)
-            self.cursor.update(Cursor.show, self.attack_board.rect)
-            if self.cursor.collide_with_projectiles(self.attack_board.projectiles): #failed defense
-                self.enemy.attack()
-                pygame.mouse.set_visible(True)
-                self.battle_state = 'Pre_round'
-        elif self.battle_state == 'attack':
-            if Current_Weapon.inflict_damage(self.enemy, True) > 0:
-                if Current_Weapon.animation_play(4, 10, 'Attack_', '', Settings.dt):
-                    Current_Weapon.inflict_damage(self.enemy, False)
-                    if self.enemy.hp <= 0:
-                        self.enemy_killed = True
-                        self.enemy.death()
-                        self.battle_state = 'Battle_end'
-                    elif Current_Weapon.turn >= Current_Weapon.attack_speed:
-                        self.attack_board = EnemyAttack(self.cursor, self.enemy.damage / 10)
-                        self.battle_state = 'Defense'
-                        Current_Weapon.turn = 0
-                        Current_Weapon.swings = 0
-                    else:
-                        self.battle_state = 'Battle_start'
-            else:
-                # No damage to apply; enemy gets a counter if turn quota reached
-                if Current_Weapon.turn >= Current_Weapon.attack_speed:
-                    self.attack_board = EnemyAttack(self.cursor, self.enemy.damage / 10)
-                    self.battle_state = 'Defense'
-                else:
-                    self.battle_state = 'Battle_start'
-        elif self.battle_state == 'Battle_start':
-            if not self.enemy_killed:
-                Current_Weapon.player_attack(self.enemy,True, Settings.dt)
-                if Current_Weapon.turn!=self.turn_check:
-                    self.turn_check+=1
-                    self.battle_state = 'attack'
-                if Current_Weapon.turn >= Current_Weapon.attack_speed:
-                    self.attack_board = EnemyAttack(self.cursor, self.enemy.damage / 10)
-                    self.battle_state = 'Defense'
-                    Current_Weapon.turn = 0
-                    Current_Weapon.swings = 0
-            if self.enemy.hp <= 0:
-                self.enemy_killed = True
-                self.enemy.death()
-                self.battle_state= 'Battle_end'
-        Current_Weapon.animate()
-        if self.battle_state != 'attack':
-            Current_Weapon.animation_play(1, 5, '', '', Settings.dt)
-        """On Timeout"""
-        if Main_Timer.update():
-            update_data(Player_Data, Game_.Player.Data)
-            save_data(Game_ID, Game_.Player.Data)
-            if SupportVariables.door != 'Boss':
-                self.player.Data['Current_Room'] += 1
-                self.scene_manager.create_scene()
-                self.scene_manager.set_scene('Corridor')
-            else:
-                self.scene_manager.set_scene('End')
-            self.battle_state = "Pre_round"
-            self.enemy_killed = False
-            Current_Weapon.frame=1
+                restart(Game_)
 class SaveSelection(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
     def run(self):
         global Game_ID
+        global Level
         if save_slot1_button.update():
             if Game_ID!=0:
                 Game_ID=1
                 if load_data(1):
                     Game_.Player.update_stats(Player1.Data)
+                    Game_.Inventory_.__init__(Game_.screen,Game_.SceneManager)
+                    Level.load_corridor(Game_.Player.Data['Corridor'])
+                    Level.generate_corridor()
                     self.scene_manager.set_scene('Corridor')
             else:
                 save_data(1, Game_.Player.Data)
@@ -229,7 +207,10 @@ class SaveSelection(Scene):
                 Game_ID = 2
                 if load_data(2):
                     Game_.Player.update_stats(Player2.Data)
+                    Game_.Corridor_.__init__(Game_.screen, Game_.SceneManager, Game_.Player)
                     print(Player_Data2)
+                    Level.load_corridor(Game_.Player.Data['Corridor'])
+                    Level.generate_corridor()
                     self.scene_manager.set_scene('Corridor')
             else:
                 save_data(2, Game_.Player.Data)
@@ -237,9 +218,17 @@ class SaveSelection(Scene):
 class Inventory(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
+        for item in Items_group: # refresh items every time inventory is instantiated
+            item.kill()
+        Inventory_slots.empty()
+        Equipment_slots.empty()
+        Notes_group.empty()
+        OneTimeUseItems_group.empty()
+        Equipment_group.empty()
         self.Running = False
+        self.label = AppearingLabel(0.3,"inventory",'white',1200,800)
+        self.snapshot=[]
         offset_x = 0
-        offset_y = 0
         """slots setup"""
         for i in range(5):
             offset_y = 0
@@ -255,13 +244,67 @@ class Inventory(Scene):
         Equipment_slots.add(helmet_slot)
         Equipment_slots.add(chestplate_slot)
         """items setup"""
-        self.note = Notes['Note_test']()
-        self.bottle = OneTimeUseItems['Bottle']()
-        self.helmet = Equipment_Items['Helmet']()
-        Items_group.add(self.helmet)
-        Items_group.add(self.note)
-        Items_group.add(self.bottle)
+        if len(Player0.Data['Items']) ==0:
+            self.note = Notes['Test_Note']()
+            self.bottle = OneTimeUseItems['Bottle']()
+            self.bottle2 = OneTimeUseItems['Bottle']()
+            self.bottle3 = OneTimeUseItems['Bottle']()
+            self.helmet2 = Equipment_Items['Helmet']()
+            self.pill = OneTimeUseItems['Powdered Happiness']()
+            print(Player0.Data['Items'])
+            #Items_group.add(self.helmet2)
+            #Items_group.add(self.note)
+            #Items_group.add(self.bottle)
+            #Items_group.add(self.pill)
+        else:
+
+            registry = {**Notes, **Equipment_Items, **OneTimeUseItems}
+            for item_name in Player0.Data['Items']:
+                equipped = item_name.endswith('_equipped')
+                base_name = item_name[:-9] if equipped else item_name
+                cls = registry.get(base_name)
+                if cls is None:
+                    print(f"Unknown item name in save: {item_name}")
+                    continue
+                print(item_name)
+                item = cls()
+                if equipped:
+                    for slot in Equipment_slots:
+                        if getattr(slot, 'image_name', None) == getattr(item, 'eq_type', None) and not getattr(slot,
+                        'occupied',False):
+                            item.free_current_slot()
+                            item.rect.center = slot.rect.center
+                            item.original_pos = item.rect.center
+                            item.equipped = True
+                            slot.occupied = True
+                            slot.image.set_alpha(0)
+                            item.apply_effects()
+                            break
+
+    def state_save(self):
+        self.snapshot = [item.used for item in Items_group]
+        for i,item in enumerate(Items_group):
+            self.snapshot[i] = item.used
+    def state_check(self): # detects if any item was used in battle
+
+        current_snapshot = [item.used for item in Items_group]
+        if len(self.snapshot)!=len(current_snapshot):
+            if len(self.snapshot)==0:
+                self.snapshot = current_snapshot
+                return False
+            else:
+                self.snapshot = current_snapshot
+                print(Player0.Data['Sanity'])
+                return True
+        for i,item in enumerate(Items_group):
+            if current_snapshot[i] != self.snapshot[i]:
+                item.used = False
+                print(Player0.Data['Sanity'])
+                return True
+        return False
+
     def run(self):
+        self.state_save() if self.scene_manager.previous_scene=='Battle' else None
         screen.fill('black')
         pygame.mouse.set_visible(True)
         Notes_group.update(lambda s: s.show())
@@ -273,44 +316,74 @@ class Inventory(Scene):
         Equipment_slots.update()
         Items_group.update()
         self.Running = True
+        self.label.update(lambda label: label.dynamic_render())
+        if self.state_check() and self.scene_manager.previous_scene=='Battle':
+            self.close_inventory('Battle')
     def close_inventory(self,previous_scene):
         self.Running =False
         self.scene_manager.set_scene(previous_scene)
 classes = {"Menu": Menu, 'Battle':Battle, 'Corridor': Corridor, 'End':End,
-                                'Death':Death,'SaveSelection':SaveSelection,'Inventory':Inventory}
+                                'Death':Death,'SaveSelection':SaveSelection,'Inventory':Inventory, 'Bile':Bile, 'Fireplace':Fireplace,'Riddle':Riddle}
 class Game:
     def __init__(self):
+        global Game_ID
         pygame.init()
+        self.game_state = None
+        self.floor = 'floor1'
+        self.level =None
         self.clock = pygame.time.Clock()
         self.Player = Player0
         self.screen = screen
-        self.Enemy =Enemies[SupportVariables.door]()
+        self.Enemy =Enemies['Rat']()
         self.Fullscreen = Fullscreen
         self.SceneManager = SceneManager('Menu')
         self.SaveSelection_ = SaveSelection(self.screen, self.SceneManager)
         self.Menu_ = Menu(self.screen,self.SceneManager)
         self.Corridor_ = Corridor(self.screen,self.SceneManager,self.Player)
-        self.Battle_ = Battle(self.screen,self.SceneManager,self.Player,self.Enemy)
+        self.Battle_ = Battle(self.screen,self.SceneManager,self.Player,self.Enemy,self, Game_ID)
         self.Death_ = Death(self.screen,self.SceneManager)
+        self.Bile_ = Bile(self.SceneManager)
+        self.Fireplace_ = Fireplace(self.SceneManager,self.Player)
         self.End_ = End(self.screen,self.SceneManager)
         self.Inventory_ = Inventory(self.screen,self.SceneManager)
+        self.Riddle_ = Riddle(self.SceneManager)
         self.Scenes =  {"Menu": self.Menu_, 'Battle':self.Battle_, 'Corridor': self.Corridor_, 'End': self.End_,
-                                'Death': self.Death_,'SaveSelection':self.SaveSelection_,'Inventory':self.Inventory_}
+            'Bile': self.Bile_, 'Fireplace': self.Fireplace_,
+            'Death': self.Death_,'SaveSelection':self.SaveSelection_,'Inventory':self.Inventory_,'Riddle':self.Riddle_}
     def create_scene(self,scene_name,class_name,*additional_args):
-        self.Scenes[scene_name]= class_name(self.screen,self.SceneManager,*additional_args)
+        try:
+            self.Scenes[scene_name]= class_name(self.screen,self.SceneManager,*additional_args)
+        except:
+            self.Scenes[scene_name] = class_name(self.SceneManager, *additional_args)
     def run(self):
         print(Player_Data)
         while SupportVariables.Running:
             global Game_ID
             screen.fill((0,0,0))
-            Settings.dt = time.time()- Settings.previous_time
+            Settings.dt = clock.tick(60)/1000.0
             Settings.previous_time = time.time()
+            def save_items():
+                for item in list(Items_group):
+                    if item in Equipment_group and getattr(item, 'equipped', False):
+                        item.revert_effects()
+
+                snapshot = []
+                for item in list(Items_group):
+                    name = getattr(item, 'image_name', None)
+                    if not name:
+                        continue
+                    entry = f"{name}_equipped" if getattr(item, 'equipped', False) else name
+                    snapshot.append(entry)
+
+                Player0.Data['Items'] = snapshot
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     if Game_ID == 0 and self.SceneManager.Game_Running:
                         self.SceneManager.set_scene('SaveSelection')
                         self.SceneManager.Game_Running = False
+                        save_items()
                     else:
+                        save_items()
                         SupportVariables.Running = False
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F11 and not self.Fullscreen:
@@ -320,24 +393,44 @@ class Game:
                     elif event.key == pygame.K_F11 and self.Fullscreen:
                         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), SCALED | DOUBLEBUF)
                         self.Fullscreen = False
-                    elif event.key == pygame.K_TAB and not self.Inventory_.Running and not self.SceneManager.current_scene=='Battle':
+                    elif event.key == pygame.K_TAB and not self.Inventory_.Running and not self.SceneManager.current_scene=='Battle' and not self.SceneManager.current_scene=='Menu':
                         self.SceneManager.previous_scene = self.SceneManager.current_scene
                         self.SceneManager.set_scene('Inventory')
                     elif event.key == pygame.K_TAB and self.Inventory_.Running and not self.SceneManager.current_scene=='Battle':
                         self.Inventory_.close_inventory(self.SceneManager.previous_scene)
+                    elif event.unicode in string.ascii_letters:
+                        for inputArea in Input_group:
+                            inputArea.text += event.unicode.upper()
+                    elif event.key == pygame.K_BACKSPACE:
+                        for inputArea in Input_group:
+                            if len(inputArea.text)>1:
+                                inputArea.text = inputArea.text[:-1] if inputArea.text[len(inputArea.text)-1]!='_' else inputArea.text[:-2]
+                    elif event.key == pygame.K_RETURN:
+                        current_scene_obj = self.Scenes.get(self.SceneManager.current_scene)
+                        if hasattr(current_scene_obj, 'check_answer'):
+                            current_scene_obj.check_answer()
             if self.SceneManager.instantiate:
                 name = self.SceneManager.get_scene()
                 cls = classes[name]
                 if name == 'Battle':
                     self.Enemy = Enemies[SupportVariables.door]()
-                    self.create_scene(name, cls, self.Player, self.Enemy)
-                elif name == 'Corridor':
+                    self.create_scene(name, cls, self.Player, self.Enemy,self,Game_ID)
+                elif name == 'Corridor' or name == 'Fireplace':
                     self.create_scene(name, cls, self.Player)
+                elif name == 'Bile':
+                    global Level
+                    self.create_scene(name,cls,Level)
                 else:
                     self.create_scene(name, cls)
             self.Scenes[self.SceneManager.get_scene()].run()
+            for item in Items_group:
+                item.unconditional_update()
             pygame.display.update()
             pygame.display.set_caption("Monochrome Tower")
+
+def create_floor(level,floor):
+    if level is None:
+        level = Levels[floor]()
 Game_= Game()
 Game_.run()
 

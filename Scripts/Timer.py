@@ -1,6 +1,4 @@
 
-
-
 from pygame.time import get_ticks
 class Timer:
     def __init__(self,duration=1,repeat=False,autostart=False,func=None):
