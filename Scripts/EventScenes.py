@@ -69,7 +69,7 @@ class Riddle(Scene):
         self.Reward = None
     def run(self):
         self.Riddler.animate()
-        self.label.dynamic_render()
+        self.label.dynamic_render(False,False,False,True)
         self.Riddler.animation_play(2,4,'','',Settings.dt,False,True,6) if not self.checked else \
              self.Riddler.animation_play(2,4,'pointing_','topleft',Settings.dt,False,True,6)
         self.input.update()
@@ -93,7 +93,7 @@ class Riddle(Scene):
                     self.Reward.stack()
             else:
                 self.Reward.kill()
-                if self.wrong_answer_label.dynamic_render(False, False, True):
+                if self.wrong_answer_label.dynamic_render(False, False, True,True):
                     self.scene_manager.create_scene()
                     Input_group.remove(self.input)
                     self.scene_manager.set_scene('Corridor')

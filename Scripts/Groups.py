@@ -1,5 +1,6 @@
 
 from Settings import *
+All_sprites=pygame.sprite.Group()
 Items_group=pygame.sprite.Group()
 Notes_group=pygame.sprite.Group()
 OneTimeUseItems_group=pygame.sprite.Group()

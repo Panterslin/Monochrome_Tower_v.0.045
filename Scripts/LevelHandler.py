@@ -1,5 +1,6 @@
 import random
 from Game_Data import Door,Player0
+from Scripts.Labels import AppearingLabel
 from Settings import *
 class Room:
     def __init__(self,name,scene_manager,scene_type):
@@ -31,6 +32,9 @@ class LevelHandler:
         self.doors_obj =[None,None,None]
         self.save_loaded = True
         self.guaranteed_candidates = [(room_key, room_info) for room_key, room_info in self.data_corridor.items() if len(room_info)==3]
+        self.title = None
+    def title_flash(self,title):
+        self.title = AppearingLabel(0.03,title,'white',WINDOW_WIDTH/2,WINDOW_HEIGHT/2,120,'PixelFont.ttf',(800,120),(80,90))
     def generate_door(self):
         if self.number_of_rooms <= self.current_room:
             return 'Boss'

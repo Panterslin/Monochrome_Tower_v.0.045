@@ -35,9 +35,9 @@ def save_data(savefile_index:int,data:dict):
         os.makedirs('../Saves')
     with open(join('../Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:
         if savefile_index == 1:
-            json.dump(data,save_file)
+            json.dump(data,save_file,indent=4)
         if savefile_index == 2:
-            json.dump(data,save_file)
+            json.dump(data,save_file,indent=4)
 def load_data(savefile_index:int)->bool:
     success=False
     global Player_Data

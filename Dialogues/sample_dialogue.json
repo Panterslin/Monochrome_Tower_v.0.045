@@ -1,0 +1,45 @@
+[
+    {
+        "id": 0,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [
+            3,
+            4
+        ],
+        "selected_callbacks": [],
+        "text": "Seems like the tower has found its new victim... Welcome"
+    },
+    {
+        "id": 3,
+        "nextNodeId": 6,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Yes"
+    },
+    {
+        "id": 4,
+        "nextNodeId": 5,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "No"
+    },
+    {
+        "id": 5,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "They all say that"
+    },
+    {
+        "id": 6,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "..."
+    }
+]

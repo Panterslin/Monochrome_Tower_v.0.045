@@ -2,6 +2,7 @@ from Scripts import Settings
 from Timer import Timer
 from Settings import screen,WINDOW_WIDTH,WINDOW_HEIGHT,clock,pygame
 from Save_Handler import *
+from Groups import *
 import random
 from Player import *
 from Labels import DynamicLabel
@@ -37,7 +38,10 @@ class SceneManager:
         self.Game_Running=False
         self.instantiate = False
     def create_scene(self):
+        for button in Buttons_group:
+            button.kill()
         self.instantiate = True
+
     def get_scene(self):
         self.instantiate = False
         return self.current_scene
@@ -151,7 +155,7 @@ class Button(pygame.sprite.Sprite):
    outline_col = 'white'
    def draw_image(self):
        pass
-   def __init__(self,x,y,text,width,height,outline:bool,font_size,custom_font_pos=False,font_pos:tuple=(0,0)):
+   def __init__(self,x,y,text,width,height,outline:bool,font_size,custom_font_pos=False,font_pos:tuple=(0,0),ignore_groups=False):
        super().__init__()
        self.x = x
        self.y = y
@@ -163,18 +167,23 @@ class Button(pygame.sprite.Sprite):
        self.custom_font_pos = custom_font_pos
        self.font_pos = font_pos
        self.clicked = False
+       Buttons_group.add(self) if not ignore_groups else None
        self.rect = pygame.FRect(self.x-2,self.y-1,self.width+4,self.height+2)
        self.occupied = False # for buttons acting as slots in inventory
+       self.font_type = pygame.font.Font('../Fonts/PixelFont.ttf', self.font_size)
+       self.text_img = self.font_type.render(self.text, True, self.text_col)
+       self.text_rect = pygame.rect.FRect((self.font_pos[0],self.font_pos[1]),(self.text_img.get_width(), self.text_img.get_height()))
+       self.outline_rect = pygame.FRect(self.x - 7, self.y - 7, self.width + 15, self.height + 15)
+       self.rects = [self.rect,self.outline_rect,self.text_rect]
    def update(self,click_check=False):
        action = False
        if click_check and self.clicked:
            self.clicked=False
            SupportVariables.click_check=False
        cursor_pos = pygame.mouse.get_pos()
-       font_type = pygame.font.Font('../Fonts/PixelFont.ttf', self.font_size)
-       outline_rect = pygame.FRect(self.x-7,self.y-7,self.width+15,self.height+15)
+
        if self.outline:
-           pygame.draw.rect(screen, self.outline_col, outline_rect)
+           pygame.draw.rect(screen, self.outline_col, self.outline_rect)
        if self.rect.collidepoint(cursor_pos):
            if pygame.mouse.get_pressed()[0]==1:
                self.clicked = True
@@ -191,16 +200,11 @@ class Button(pygame.sprite.Sprite):
        else:
            pygame.draw.rect(screen,self.button_col,self.rect)
            self.text_col='white'
-       text_img = font_type.render(self.text, True, self.text_col)
-       text_len = text_img.get_width()
-       if not self.custom_font_pos:
-        if self.font_size <= self.height:
-            screen.blit(text_img, (self.x+int(self.width/2)-int(text_len/2)+3, self.y-int(self.height)+self.font_size))
-        else:
-            screen.blit(text_img, (self.x + int(self.width / 2) - int(text_len / 2) + 3,self.y - int(self.height) + self.font_size/2+3))
-       else:
-           screen.blit(text_img,(self.font_pos[0],self.font_pos[1]))
+       self.text_img = self.font_type.render(self.text, True, self.text_col)
        self.draw_image()
+       screen.blit(self.text_img, (self.rect.centerx - int(self.text_img.get_width() / 2),
+                                   self.rect.centery - int(self.text_img.get_height() / 2)))
+
        return action
 class ImageButton(Button):
     def __init__(self,image_folder_name,image_name:str,x,y,text,width,height,outline:bool,image_size_relative=0.31):
@@ -346,14 +350,6 @@ BossDoor = Door('../Doors','BossDoor',0,0,'BossDoor_alt.png',0)
 Door_group.add(BossDoor,door20,door10,door0)
 """Dictionaries"""
 Doors = {0:door0,10:door10,20:door20,'Boss':BossDoor}
-"""Buttons"""
-start = Button(WINDOW_WIDTH/2-145, WINDOW_HEIGHT/2, 'START',290,90,True,75)
-info = Button(WINDOW_WIDTH*0.9, WINDOW_HEIGHT*0.9, 'i',50,50,True,55)
-return_menu= Button(WINDOW_WIDTH/2-145, WINDOW_HEIGHT/2, 'Return',290,90,True,75)
-continue_button = Button(WINDOW_WIDTH/2-145, WINDOW_HEIGHT/1.5, 'Continue',290,90,True,60,True,(WINDOW_WIDTH/2.4,WINDOW_HEIGHT/1.53))
-save_slot1_button = Button(WINDOW_WIDTH/4-145, 20, 'Slot1',290,WINDOW_HEIGHT-50,True,75,True,(300,WINDOW_HEIGHT/2.5))
-save_slot2_button = Button(WINDOW_WIDTH/2,20,'Slot2',290,WINDOW_HEIGHT-50,True,75,True,(850,WINDOW_HEIGHT/2.5))
-attack_button = Button(WINDOW_WIDTH/2-300, WINDOW_HEIGHT/2, 'ATTACK',290,90,True,65,True,(WINDOW_WIDTH/2-295, WINDOW_HEIGHT/2-10))
 """UI"""
 Base_UI = UI('Heart_Icon.png','Profile_Icon.png','Sanity_Icon.png','Defense_Icon.png')
 

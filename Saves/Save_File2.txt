@@ -1,0 +1,1 @@
+{"HP": 100, "Sanity": -20, "Max_HP": 100, "Max_Sanity": 150, "Defense": 0, "Money": 0, "Current_Floor": 1, "Current_Room": 3, "Level": 1, "Experience": 0, "Items": ["Powdered Happiness"], "Corridor": ["Door0", "Door20", "Door10"]}

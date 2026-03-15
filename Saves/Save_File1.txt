@@ -1,0 +1,25 @@
+{
+    "HP": 100,
+    "Sanity": 110,
+    "Max_HP": 100,
+    "Max_Sanity": 150,
+    "Defense": 0,
+    "Money": 0,
+    "Current_Floor": 1,
+    "Current_Room": 4,
+    "Level": 1,
+    "Experience": 0,
+    "Items": [
+        "Test_Note",
+        "Bottle",
+        "Bottle",
+        "Bottle",
+        "Helmet",
+        "Powdered Happiness"
+    ],
+    "Corridor": [
+        "Door20",
+        "Door10",
+        "Door0"
+    ]
+}

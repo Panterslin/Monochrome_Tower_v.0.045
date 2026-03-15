@@ -4,6 +4,7 @@ from Enemies import Enemies,EnemyAttackBoard
 from Save_Handler import save_data,load_data,update_data,Player_Data
 from Scripts import Items
 from Weapons import Current_Weapon"""
+import pygame
 from pygame import SCALED, FULLSCREEN
 from Items import Notes
 from LevelHandler import *
@@ -11,10 +12,13 @@ from EventScenes import *
 from BattleHandler import *
 import EventScenes
 import time
+
+from Scripts import DevTools
+
 """Timers"""
 """display"""
 import Settings
-from Settings import Fullscreen
+from DevTools import *
 pygame.init()
 Level = Levels['floor1']()
 #Temporary var for checking if currently playing on save file (remove later)
@@ -40,6 +44,7 @@ class Scene:
 class End(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display,scene_manager)
+        self.return_menu = Button(WINDOW_WIDTH / 2 - 145, WINDOW_HEIGHT / 2, 'Return', 290, 90, True, 75)
 
     def run(self):
 
@@ -48,20 +53,24 @@ class End(Scene):
         delete_data(Game_ID)
         if not SupportVariables.click_checker:
             SupportVariables.click_checker = True
-            if return_menu.update(True):
+            if self.return_menu.update(True):
                 restart(Game_)
                 self.scene_manager.set_scene('Menu')
         else:
-            if return_menu.update(False):
+            if self.return_menu.update(False):
                 restart(Game_)
                 self.scene_manager.set_scene('Menu')
 class Menu(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
         self.cursor = Cursor()
-        self.attack_board = EnemyAttackBoard('',self.cursor,2)
+        self.attack_board = EnemyAttackBoard('',self.cursor,2,3)
         self.attack_board.image = screen
         self.attack_board.rect = screen.get_frect(topleft=(0, 0))
+        self.start = Button(WINDOW_WIDTH / 2 - 145, WINDOW_HEIGHT / 2, 'START', 290, 90, True, 75)
+        self.info = Button(WINDOW_WIDTH * 0.9, WINDOW_HEIGHT * 0.9, 'i', 50, 50, True, 55)
+        self.continue_button = Button(WINDOW_WIDTH / 2 - 145, WINDOW_HEIGHT / 1.5, 'Continue', 290, 90, True, 60, True,
+                                 (WINDOW_WIDTH / 2.4, WINDOW_HEIGHT / 1.53))
         for border,sur in zip(self.attack_board.board_border,self.attack_board.board_border_surfaces):
             sur.set_alpha(0)
             self.attack_board.board_border_surfaces.remove(sur)
@@ -72,6 +81,10 @@ class Menu(Scene):
         self.Timer = Timer()
         self.title_label = title_lbl
         self.label = None
+        try:
+            Game_.DevTools_Move.load_sprite_pos()
+        except:
+            pass
     def run(self):
 
         self.attack_board.update(Settings.dt)
@@ -81,10 +94,11 @@ class Menu(Scene):
             self.cursor.player_cursor_death()
         global Game_ID
         SupportVariables.battle_started=False
-        if continue_button.update():
+        if self.continue_button.update():
             Game_ID = 1
+            self.scene_manager.create_scene()
             self.scene_manager.set_scene('SaveSelection')
-        if start.update():
+        if self.start.update():
             Game_ID=0
             self.scene_manager.Game_Running = True
             print("Button Pressed")
@@ -94,10 +108,11 @@ class Menu(Scene):
             Game_.Player.reset_stats()
             print(Default_Data)
 
-        if info.update():
+        if self.info.update():
             print("info")
         if self.label is not None:
             if self.label.dynamic_render(False,True,True):
+                self.scene_manager.create_scene()
                 self.scene_manager.set_scene('Corridor')
                 global Level
                 Level = Levels['floor1']()
@@ -169,6 +184,7 @@ class Death(Scene):
         self.death = ImageObject('../Scenes', 'Death', 100, 400)
         self.death.image = pygame.transform.scale_by(self.death.image,2)
         self.death.rect = self.death.image.get_frect()
+        self.return_menu = Button(WINDOW_WIDTH / 2 - 145, WINDOW_HEIGHT / 2, 'Return', 290, 90, True, 75)
     def run(self):
         screen.blit(self.death.image, self.death.rect)
         death_lbl.update()
@@ -177,23 +193,28 @@ class Death(Scene):
         update_data(Game_.Player.Data,Clear_Data)
         if not SupportVariables.click_checker:
             SupportVariables.click_checker = True
-            if return_menu.update(True):
+            if self.return_menu.update(True):
                 self.scene_manager.set_scene('Menu')
                 restart(Game_)
         else:
-            if return_menu.update(False):
+            if self.return_menu.update(False):
                 self.scene_manager.set_scene('Menu')
                 restart(Game_)
 class SaveSelection(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
+        self.save_slot1_button = Button(WINDOW_WIDTH / 4 - 145, 20, 'Slot1', 290, WINDOW_HEIGHT - 50, True, 75, True,
+                                   (300, WINDOW_HEIGHT / 2.5))
+        self.save_slot2_button = Button(WINDOW_WIDTH / 2, 20, 'Slot2', 290, WINDOW_HEIGHT - 50, True, 75, True,
+                                   (850, WINDOW_HEIGHT / 2.5))
     def run(self):
         global Game_ID
         global Level
-        if save_slot1_button.update():
+        if self.save_slot1_button.update():
             if Game_ID!=0:
                 Game_ID=1
                 if load_data(1):
+                    self.scene_manager.create_scene()
                     Game_.Player.update_stats(Player1.Data)
                     Game_.Inventory_.__init__(Game_.screen,Game_.SceneManager)
                     Level.load_corridor(Game_.Player.Data['Corridor'])
@@ -202,16 +223,19 @@ class SaveSelection(Scene):
             else:
                 save_data(1, Game_.Player.Data)
                 SupportVariables.Running=False
-        if save_slot2_button.update():
+        if self.save_slot2_button.update():
             if Game_ID!=0:
                 Game_ID = 2
                 if load_data(2):
+                    self.scene_manager.create_scene()
+                    self.scene_manager.set_scene('Corridor')
                     Game_.Player.update_stats(Player2.Data)
                     Game_.Corridor_.__init__(Game_.screen, Game_.SceneManager, Game_.Player)
                     print(Player_Data2)
                     Level.load_corridor(Game_.Player.Data['Corridor'])
                     Level.generate_corridor()
-                    self.scene_manager.set_scene('Corridor')
+
+
             else:
                 save_data(2, Game_.Player.Data)
                 SupportVariables.Running=False
@@ -232,11 +256,11 @@ class Inventory(Scene):
         """slots setup"""
         for i in range(5):
             offset_y = 0
-            i = Button(10+offset_x,10,'',150,150,True,80)
+            i = Button(10+offset_x,10,'',150,150,True,80,False,(100,100),True)
             Inventory_slots.add(i)
             offset_x += 200
             for j in range(4):
-                j = Button(-190+offset_x,190+offset_y,'',150,150,True,80)
+                j = Button(-190+offset_x,190+offset_y,'',150,150,True,80,False,(100,100),True)
                 Inventory_slots.add(j)
                 offset_y += 180
         helmet_slot =ImageButton('../Icons','Helmet',1200,10,'',200,200,True)
@@ -336,29 +360,37 @@ class Game:
         self.screen = screen
         self.Enemy =Enemies['Rat']()
         self.Fullscreen = Fullscreen
+
         self.SceneManager = SceneManager('Menu')
-        self.SaveSelection_ = SaveSelection(self.screen, self.SceneManager)
-        self.Menu_ = Menu(self.screen,self.SceneManager)
-        self.Corridor_ = Corridor(self.screen,self.SceneManager,self.Player)
-        self.Battle_ = Battle(self.screen,self.SceneManager,self.Player,self.Enemy,self, Game_ID)
-        self.Death_ = Death(self.screen,self.SceneManager)
-        self.Bile_ = Bile(self.SceneManager)
-        self.Fireplace_ = Fireplace(self.SceneManager,self.Player)
-        self.End_ = End(self.screen,self.SceneManager)
+        self.Menu_ = Menu(self.screen, self.SceneManager)
+        self.SaveSelection_ = None#SaveSelection(self.screen, self.SceneManager)
+        self.Corridor_ = None #Corridor(self.screen,self.SceneManager,self.Player)
+        self.Battle_ = None #Battle(self.screen,self.SceneManager,self.Player,self.Enemy,self, Game_ID)
+        self.Death_ = None#Death(self.screen,self.SceneManager)
+        self.Bile_ = None#Bile(self.SceneManager)
+        self.Fireplace_ = None#Fireplace(self.SceneManager,self.Player)
+        self.End_ = None#End(self.screen,self.SceneManager)
         self.Inventory_ = Inventory(self.screen,self.SceneManager)
-        self.Riddle_ = Riddle(self.SceneManager)
+        self.Riddle_ = None#Riddle(self.SceneManager)
         self.Scenes =  {"Menu": self.Menu_, 'Battle':self.Battle_, 'Corridor': self.Corridor_, 'End': self.End_,
             'Bile': self.Bile_, 'Fireplace': self.Fireplace_,
             'Death': self.Death_,'SaveSelection':self.SaveSelection_,'Inventory':self.Inventory_,'Riddle':self.Riddle_}
+        self.DevTools_Move = MoveTool(Buttons_group, lambda: self.SceneManager.current_scene,self.Scenes.keys())
+        print(Buttons_group)
     def create_scene(self,scene_name,class_name,*additional_args):
         try:
             self.Scenes[scene_name]= class_name(self.screen,self.SceneManager,*additional_args)
         except:
             self.Scenes[scene_name] = class_name(self.SceneManager, *additional_args)
+        self.DevTools_Move.capture_scene_positions()
+        self.DevTools_Move.apply_positions()
+
+        print(Buttons_group)
     def run(self):
         print(Player_Data)
         while SupportVariables.Running:
             global Game_ID
+            self.DevTools_Move.move_sprites(self.DevTools_Move.group)
             screen.fill((0,0,0))
             Settings.dt = clock.tick(60)/1000.0
             Settings.previous_time = time.time()
@@ -378,10 +410,12 @@ class Game:
                 Player0.Data['Items'] = snapshot
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.DevTools_Move.save_sprite_pos()
                     if Game_ID == 0 and self.SceneManager.Game_Running:
                         self.SceneManager.set_scene('SaveSelection')
                         self.SceneManager.Game_Running = False
                         save_items()
+
                     else:
                         save_items()
                         SupportVariables.Running = False
@@ -393,7 +427,7 @@ class Game:
                     elif event.key == pygame.K_F11 and self.Fullscreen:
                         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT), SCALED | DOUBLEBUF)
                         self.Fullscreen = False
-                    elif event.key == pygame.K_TAB and not self.Inventory_.Running and not self.SceneManager.current_scene=='Battle' and not self.SceneManager.current_scene=='Menu':
+                    elif event.key == pygame.K_TAB and not self.Inventory_.Running and not self.SceneManager.current_scene in['Battle','Menu','SaveSelection']:
                         self.SceneManager.previous_scene = self.SceneManager.current_scene
                         self.SceneManager.set_scene('Inventory')
                     elif event.key == pygame.K_TAB and self.Inventory_.Running and not self.SceneManager.current_scene=='Battle':
@@ -409,6 +443,10 @@ class Game:
                         current_scene_obj = self.Scenes.get(self.SceneManager.current_scene)
                         if hasattr(current_scene_obj, 'check_answer'):
                             current_scene_obj.check_answer()
+                    elif event.key == pygame.K_0:
+                        print('o')
+                        self.DevTools_Move.factory_reset()
+
             if self.SceneManager.instantiate:
                 name = self.SceneManager.get_scene()
                 cls = classes[name]
