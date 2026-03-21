@@ -18,7 +18,6 @@ class Player:
         self.Data['Money'] = 0
         self.Data['Experience'] = 0
         self.Data['Corridor'] = [None,None,None]
-        for item in self.Data['Items']:
-            self.Data['Items'].remove(item)
+        self.Data['Items']=[]
     def get_value(self,key,item_key=None):
         return self.Data[key] if isinstance(self.Data[key],int) else self.Data[key][item_key]

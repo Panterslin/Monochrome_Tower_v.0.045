@@ -1,6 +1,7 @@
 import json
 import os
 from os.path import join
+from Settings import ROOT_DIR
 def generate_data():
     dictio={
         'HP': 100,
@@ -24,16 +25,17 @@ Player_Data=generate_data()
 Player_Data2=generate_data()
 
 def delete_data(savefile_index:int):
-    with open(join('../Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:
+    with open(join(ROOT_DIR,'Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:
         json.dump(Clear_Data, save_file)
 def update_data(current_data:dict,new_data:dict):
-    current_data = new_data
+    current_data.clear()
+    current_data.update(new_data)
 def save_data(savefile_index:int,data:dict):
     global Player_Data
     global Player_Data2
-    if not os.path.exists('../Saves'):
-        os.makedirs('../Saves')
-    with open(join('../Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:
+    if not os.path.exists('Saves'):
+        os.makedirs('Saves')
+    with open(join(ROOT_DIR,'Saves','Save_File'+str(savefile_index)+'.txt'), 'w') as save_file:
         if savefile_index == 1:
             json.dump(data,save_file,indent=4)
         if savefile_index == 2:
@@ -43,7 +45,7 @@ def load_data(savefile_index:int)->bool:
     global Player_Data
     global Player_Data2
     global Default_Data
-    file_path = join('../Saves', 'Save_File' + str(savefile_index) + '.txt')
+    file_path = join(ROOT_DIR,'Saves', 'Save_File' + str(savefile_index) + '.txt')
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r') as save_file:

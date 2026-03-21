@@ -131,5 +131,5 @@ class Weapon(AnimatedObject):
         if self.deal_damage >0:
             enemy.hp -= self.damage
             self.deal_damage=0
-RustyBlade = Weapon(25,50,'RustyBlade','../Weapons',3,50,WINDOW_WIDTH/2.5,WINDOW_HEIGHT-450)
+RustyBlade = Weapon(25,50,'RustyBlade','Weapons',3,50,WINDOW_WIDTH/2.5,WINDOW_HEIGHT-450)
 Current_Weapon = RustyBlade

@@ -1,6 +1,6 @@
 from Scripts import Settings
 from Timer import Timer
-from Settings import screen,WINDOW_WIDTH,WINDOW_HEIGHT,clock,pygame
+from Settings import ROOT_DIR
 from Save_Handler import *
 from Groups import *
 import random
@@ -9,6 +9,7 @@ from Labels import DynamicLabel
 pygame.init()
 """Groups"""
 Door_group = pygame.sprite.Group()
+import Groups
 """Timers"""
 timeout=False
 Main_Timer=Timer(0.5,False,False)
@@ -37,11 +38,9 @@ class SceneManager:
         self.previous_scene = None
         self.Game_Running=False
         self.instantiate = False
-    def create_scene(self):
-        for button in Buttons_group:
-            button.kill()
+    def create_scene(self,scene_name,isolate_spr=False):
         self.instantiate = True
-
+        self.current_scene = scene_name
     def get_scene(self):
         self.instantiate = False
         return self.current_scene
@@ -54,9 +53,10 @@ SupportVariables=SupportVariables()
 current_player=Player0
 
 class ImageObject(pygame.sprite.Sprite):
-    def __init__(self,image_folder_name:str, image_name:str, x,y):
+    def __init__(self,image_folder_name:str, image_name:str, x,y,ignore_groups=False):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
+        #Buttons_group.add(self) if not ignore_groups else None
         self.image_folder_name=image_folder_name
         self.anim_name= None
         self.frame=1
@@ -65,20 +65,29 @@ class ImageObject(pygame.sprite.Sprite):
         self.y = y
         try:
             if self.anim_name is not None:
-                self.image = pygame.image.load(join(image_folder_name, image_name, image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
+                self.image = pygame.image.load(os.path.join(ROOT_DIR,image_folder_name, image_name, image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
             else:
-                self.image = pygame.image.load(join(image_folder_name, image_name, image_name + '_'+ str(int(self.frame)) + ".png")).convert_alpha()
+                self.image = pygame.image.load(os.path.join(ROOT_DIR,image_folder_name, image_name, image_name + '_'+ str(int(self.frame)) + ".png")).convert_alpha()
         except FileNotFoundError:
             if self.anim_name is not None:
-                self.image = pygame.image.load(join(image_folder_name, image_name,
+                self.image = pygame.image.load(os.path.join(ROOT_DIR, image_folder_name, image_name,
                                                     image_name + self.anim_name + str(
                                                         int(self.frame)) + ".png")).convert_alpha()
             else:
-                self.image = pygame.image.load(join(image_folder_name, image_name,
+                self.image = pygame.image.load(os.path.join(ROOT_DIR,image_folder_name, image_name,
                                                     image_name + str(int(self.frame)) + ".png")).convert_alpha()
 
         self.rect = self.image.get_frect(center=(x,y))
         self.mask = pygame.mask.from_surface(self.image)
+        self.mask_sur = self.create_mask_surface()
+
+    def create_mask_surface(self,mask_alpha=255, image_alpha=None):
+        self.mask = pygame.mask.from_surface(self.image)
+        mask_sur = self.mask.to_surface(setcolor=(0, 0, 0), unsetcolor=(1, 1, 1))
+        mask_sur.set_colorkey((1, 1, 1))
+        mask_sur.set_alpha(mask_alpha)
+        self.image.set_alpha(image_alpha) if image_alpha is not None else None
+        return mask_sur
 class AnimatedObject(ImageObject):
     def __init__(self,image_folder_name,image_name:str, x=0,y=0,alt_image=""):
         super().__init__(image_folder_name,image_name,x,y)
@@ -88,7 +97,12 @@ class AnimatedObject(ImageObject):
         self.alt_image= alt_image
     def animate(self):
         self.is_animating=True
-    def animation_play(self,frames,anim_speed,anim_type='',align_type='center',dt=None,background=False,visibility=True,image_size=None)->bool:
+    def count_frames(self,anim_type=''):
+        if anim_type == '':
+            return len(os.listdir(join(ROOT_DIR,self.image_folder_name, self.image_name)))
+        else:
+            return len(os.listdir(join(ROOT_DIR,self.image_folder_name, self.image_name, anim_type)))
+    def animation_play(self,frames=1,anim_speed=0.05,anim_type='',align_type='center',dt=None,background=False,visibility=True,image_size=None)->bool:
         end=False
         self.anim_name=anim_type
         if dt is None:
@@ -96,14 +110,14 @@ class AnimatedObject(ImageObject):
         if self.is_animating:
             try:
                 if not background:
-                    self.image=pygame.image.load(join(self.image_folder_name, self.image_name, self.image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
+                    self.image=pygame.image.load(join(ROOT_DIR,self.image_folder_name, self.image_name, self.image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
                 else:
-                    self.image=pygame.image.load(join(self.image_folder_name, self.image_name, self.image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert()
+                    self.image=pygame.image.load(join(ROOT_DIR,self.image_folder_name, self.image_name, self.image_name + '_' + self.anim_name + str(int(self.frame)) + ".png")).convert()
             except FileNotFoundError: # different file format
                 if not background:
-                    self.image=pygame.image.load(join(self.image_folder_name, self.image_name, self.image_name + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
+                    self.image=pygame.image.load(join(ROOT_DIR,self.image_folder_name, self.image_name, self.image_name + self.anim_name + str(int(self.frame)) + ".png")).convert_alpha()
                 else:
-                    self.image=pygame.image.load(join(self.image_folder_name, self.image_name, self.image_name + self.anim_name + str(int(self.frame)) + ".png")).convert()
+                    self.image=pygame.image.load(join(ROOT_DIR,self.image_folder_name, self.image_name, self.image_name + self.anim_name + str(int(self.frame)) + ".png")).convert()
             self.frame+=anim_speed*dt*3
             if align_type == 'center':
                 self.rect = self.image.get_frect(center=(self.x,self.y))
@@ -170,7 +184,7 @@ class Button(pygame.sprite.Sprite):
        Buttons_group.add(self) if not ignore_groups else None
        self.rect = pygame.FRect(self.x-2,self.y-1,self.width+4,self.height+2)
        self.occupied = False # for buttons acting as slots in inventory
-       self.font_type = pygame.font.Font('../Fonts/PixelFont.ttf', self.font_size)
+       self.font_type = pygame.font.Font(FONT_PATH, self.font_size)
        self.text_img = self.font_type.render(self.text, True, self.text_col)
        self.text_rect = pygame.rect.FRect((self.font_pos[0],self.font_pos[1]),(self.text_img.get_width(), self.text_img.get_height()))
        self.outline_rect = pygame.FRect(self.x - 7, self.y - 7, self.width + 15, self.height + 15)
@@ -212,7 +226,7 @@ class ImageButton(Button):
         self.image_folder_name = image_folder_name
         self.image_name = image_name
         self.image = pygame.image.load(
-            join(image_folder_name,image_name + ".png")).convert_alpha()
+            join(ROOT_DIR,image_folder_name,image_name + ".png")).convert_alpha()
         self.image = pygame.transform.scale_by(self.image, image_size_relative)
         self.rect = self.image.get_frect()
 
@@ -237,7 +251,7 @@ class Door(AnimatedObject):
        Door_group.add(self)
    def create_door(self,door_x,door_y):
        action = False
-       alt_image = pygame.image.load(join('../Doors',self.image_name, self.alt_img)).convert_alpha()
+       alt_image = pygame.image.load(join(ROOT_DIR,'Doors',self.image_name, self.alt_img)).convert_alpha()
        self.rect.x= door_x-200
        self.rect.y = door_y-150
        self.mask = pygame.mask.from_surface(alt_image)
@@ -272,18 +286,18 @@ class UI:
         pygame.draw.rect(screen, self.rect_color, back_rect)
         for icon in self.icons:
             if icon != self.profile_icon and icon != self.defense_icon:
-                rect = pygame.image.load(join('../UI',icon)).convert_alpha().get_frect(center=(440,WINDOW_HEIGHT-100+offset))
+                rect = pygame.image.load(join(ROOT_DIR,'UI',icon)).convert_alpha().get_frect(center=(440,WINDOW_HEIGHT-100+offset))
                 offset+=60
-                screen.blit(pygame.image.load(join('../UI',icon)),rect)
+                screen.blit(pygame.image.load(join(ROOT_DIR,'UI',icon)),rect)
             elif icon == self.defense_icon:
-                image = pygame.transform.scale_by(pygame.image.load(join('../UI',icon)).convert(),0.5)
+                image = pygame.transform.scale_by(pygame.image.load(join(ROOT_DIR,'UI',icon)).convert(),0.5)
                 rect = image.get_frect(center=(490,WINDOW_HEIGHT-70))
                 screen.blit(image,rect)
-                defense_label = DynamicLabel(str(Player0.Data['Defense']), 'black',rect.x+34-len(str(Player0.Data['Defense']))*8,rect.y+14,'PixelFont.ttf',20)
+                defense_label = DynamicLabel(str(Player0.Data['Defense']), 'black',rect.x+34-len(str(Player0.Data['Defense']))*8,rect.y+14,FONT_PATH,20)
                 defense_label.update()
             elif icon == self.profile_icon:
-                rect = pygame.image.load(join('../UI',icon)).convert_alpha().get_frect(center=(70,WINDOW_HEIGHT-70))
-                screen.blit(pygame.image.load(join('../UI',icon)),rect)
+                rect = pygame.image.load(join(ROOT_DIR,'UI',icon)).convert_alpha().get_frect(center=(70,WINDOW_HEIGHT-70))
+                screen.blit(pygame.image.load(join(ROOT_DIR,'UI',icon)),rect)
 class ProgressBar:
     lbl_color='black'
     def __init__(self,width, height,x,y):
@@ -311,7 +325,7 @@ class ProgressBar:
         ,self.y+self.height/15,int(min(self.width-self.width/25 - self.modifier * value*(self.width/250), self.width-self.width/25)), self.height-self.height/7.5))
         if include_label:
 
-            lbl_font = pygame.font.Font('../Fonts/PixelFont.ttf', int(self.height - self.height / 3))
+            lbl_font = pygame.font.Font(FONT_PATH, int(self.height - self.height / 3))
             width =0
             for i,letter in enumerate(str(value)+'/'+str(max_value)):
                 letter_img = lbl_font.render(letter, True, self.lbl_color)
@@ -326,7 +340,7 @@ class ProgressBar:
 
         return max_value
     def find_label_size(self,value,max_value)->int:
-        lbl_font = pygame.font.Font('../Fonts/PixelFont.ttf', int(self.height - self.height / 3))
+        lbl_font = pygame.font.Font(FONT_PATH, int(self.height - self.height / 3))
         label = lbl_font.render(str(value) + '/' + str(max_value), True, self.lbl_color)
         label_size = label.get_width()
         const_label = label_size
@@ -338,15 +352,15 @@ class DecoImage(AnimatedObject):
 "Deco"
 #Corridor_Deco = DecoImage('Corridor','Corridor',0,0)
 
-Vermin_I_Deco = DecoImage('../Corridor','VerminNest_I',0,0)
+Vermin_I_Deco = DecoImage('Corridor','VerminNest_I',0,0)
 """ProgressBars"""
 hp_bar = ProgressBar(250,30,WINDOW_WIDTH/10,WINDOW_HEIGHT-WINDOW_HEIGHT/7.8)
 sanity_bar = ProgressBar(250,30,WINDOW_WIDTH/10,WINDOW_HEIGHT-WINDOW_HEIGHT/16)
 """Doors"""
-door0 = Door('../Doors','Door0',0,0,'Door0_alt.png',0)
-door10 = Door('../Doors','Door10',0,0,'Door10_alt.png',10)
-door20 = Door('../Doors','Door20',0,0,'Door20_alt.png',20)
-BossDoor = Door('../Doors','BossDoor',0,0,'BossDoor_alt.png',0)
+door0 = Door('Doors','Door0',0,0,'Door0_alt.png',0)
+door10 = Door('Doors','Door10',0,0,'Door10_alt.png',10)
+door20 = Door('Doors','Door20',0,0,'Door20_alt.png',20)
+BossDoor = Door('Doors','BossDoor',0,0,'BossDoor_alt.png',0)
 Door_group.add(BossDoor,door20,door10,door0)
 """Dictionaries"""
 Doors = {0:door0,10:door10,20:door20,'Boss':BossDoor}

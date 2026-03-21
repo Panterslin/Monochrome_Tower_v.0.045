@@ -20,7 +20,7 @@ class Battle:
         self.attack_board = EnemyAttackBoard()
         self.cursor = Cursor()
         self.dmg_lbl=AppearingLabel(0.05,str(Current_Weapon.damage),'white',WINDOW_WIDTH/2-100,WINDOW_HEIGHT/2-100,
-                               50,'PixelFont.ttf')
+                               50,FONT_PATH)
         self.item_used=False
         self.Item_button = Button(WINDOW_WIDTH/2-300, WINDOW_HEIGHT/2.5+10, 'ITEM',290,90,True,65,
                                   True,(WINDOW_WIDTH/2-230, WINDOW_HEIGHT/2-90))
@@ -112,7 +112,7 @@ class Battle:
                     self.battle_state = 'attack'
                     self.dmg_lbl.__init__(0.05, str(Current_Weapon.damage), 'white', WINDOW_WIDTH / 2 - 100,
                                           WINDOW_HEIGHT / 2 - 100,
-                                          50, 'PixelFont.ttf')
+                                          50, FONT_PATH)
                 if Current_Weapon.turn >= Current_Weapon.attack_speed:
                     self.attack_board = self.enemy.choose_an_attack()
                     self.adjust_enemy_attack()
@@ -131,8 +131,7 @@ class Battle:
             save_data(self.game_id, self.game.Player.Data)
             if SupportVariables.door != 'Boss':
                 self.player.Data['Current_Room'] += 1
-                self.scene_manager.create_scene()
-                self.scene_manager.set_scene('Corridor')
+                self.scene_manager.create_scene('Corridor')
             else:
                 self.scene_manager.set_scene('End')
             self.battle_state = "Pre_round"

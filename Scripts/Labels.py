@@ -4,7 +4,7 @@ from Settings import *
 from os.path import join
 from Timer import Timer
 class Label(pygame.sprite.Sprite):
-    def __init__(self, text, color, x, y,font='PixelFont.ttf',font_size=30,bg_size:tuple=(0,0),bg_pos:tuple=(0,0),background:bool=True,background_color='black'):
+    def __init__(self, text, color, x, y,font=FONT_PATH,font_size=30,bg_size:tuple=(0,0),bg_pos:tuple=(0,0),background:bool=True,background_color='black'):
         super().__init__()
         self.text = text
         self.text_const = text
@@ -17,7 +17,7 @@ class Label(pygame.sprite.Sprite):
         self.background_color = background_color
         self.bg_size = bg_size
         self.bg_pos = bg_pos
-        self.create_font = pygame.font.Font(join('../Fonts', self.font), self.font_size)
+        self.create_font = pygame.font.Font(self.font, self.font_size)
         self.image = self.create_font.render(self.text, True, self.color)
         self.rect = self.image.get_frect(topleft=(self.x, self.y))
     def update(self,func=None):
@@ -35,14 +35,14 @@ class Label(pygame.sprite.Sprite):
         self.image = self.create_font.render(self.text, True, self.color)
         self.rect = self.image.get_frect(center=(self.x, self.y))
 class DynamicLabel(Label):
-    def __init__(self, text, color, x, y, font='PixelFont.ttf', font_size=30,bg_size: tuple = (0, 0), bg_pos: tuple = (0, 0),
+    def __init__(self, text, color, x, y, font=FONT_PATH, font_size=30,bg_size: tuple = (0, 0), bg_pos: tuple = (0, 0),
                  background: bool = True, background_color='black',):
         super().__init__(text, color, x, y, font, font_size, bg_size, bg_pos, background,background_color)
     def dynamic_update(self, var):# update the label with variables
         self.text =self.text_const+ str(var)
         self.update()
 class AppearingLabel(Label):
-    def __init__(self,text_speed,text, color, x, y,font_size=30,font="PixelFont.ttf",bg_size:tuple=(0,0),bg_pos:tuple=(0,0),background:bool=True,background_color='black'):
+    def __init__(self,text_speed,text, color, x, y,font_size=30,font=FONT_PATH,bg_size:tuple=(0,0),bg_pos:tuple=(0,0),background:bool=True,background_color='black'):
         super().__init__(text, color, x, y,font,font_size,bg_size=bg_size,bg_pos=bg_pos,background=background,background_color=background_color)
         self.timer = Timer(text_speed,True,True)
         self.text_speed = text_speed
@@ -125,9 +125,9 @@ class InputArea(Label):
 
 
 """Labels"""
-title_lbl = AppearingLabel(0.3,"Monochrome Tower", 'white',WINDOW_WIDTH/2,WINDOW_HEIGHT/20+60,80,'PixelFont.ttf',(800,90),(WINDOW_WIDTH/4,70))
-death_lbl= Label("Fallen into oblivion...",'white',WINDOW_WIDTH/4,WINDOW_HEIGHT/20,'PixelFont.ttf',80)
-room_score = DynamicLabel("Room: " , 'white', WINDOW_WIDTH/20, WINDOW_HEIGHT/20+WINDOW_HEIGHT/20, 'PixelFont.ttf', 40, (200,100),(50,50))
-floor_score = DynamicLabel("Floor: ", 'white', WINDOW_WIDTH/20, WINDOW_HEIGHT/20, 'PixelFont.ttf', 40,(0,0),(0,0))
-victory_label = Label("Game Completed", 'white', WINDOW_WIDTH/4, WINDOW_HEIGHT/20, 'PixelFont.ttf', 80,(600,600),(200,150))
+title_lbl = AppearingLabel(0.3,"Monochrome Tower", 'white',WINDOW_WIDTH/2,WINDOW_HEIGHT/20+60,80,FONT_PATH,(800,90),(WINDOW_WIDTH/4,70))
+death_lbl= Label("Fallen into oblivion...",'white',WINDOW_WIDTH/4,WINDOW_HEIGHT/20,FONT_PATH,80)
+room_score = DynamicLabel("Room: " , 'white', WINDOW_WIDTH/20, WINDOW_HEIGHT/20+WINDOW_HEIGHT/20, FONT_PATH, 40, (200,100),(50,50))
+floor_score = DynamicLabel("Floor: ", 'white', WINDOW_WIDTH/20, WINDOW_HEIGHT/20, FONT_PATH, 40,(0,0),(0,0))
+victory_label = Label("Game Completed", 'white', WINDOW_WIDTH/4, WINDOW_HEIGHT/20, FONT_PATH, 80,(600,600),(200,150))
 #turn_label = Label()

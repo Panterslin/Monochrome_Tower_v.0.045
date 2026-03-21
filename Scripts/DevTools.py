@@ -3,7 +3,7 @@ import copy
 from Groups import *
 from Save_Handler import json,os,join
 class MoveTool:
-    def __init__(self,group=All_sprites,scene_name_getter=None,scenes=None,key_getter=None):
+    def __init__(self,group=Buttons_group,scene_name_getter=None,scenes=None,key_getter=None):
         self.dragged = False
         self.group = group
 
@@ -15,6 +15,7 @@ class MoveTool:
         self.data = self.load_sprite_pos()
         self.init_data = copy.deepcopy(self.data)
         self.apply_positions()
+        self.alt_pressed = False
 
     def _capture_original_positions(self):
         scene = self.current_scene()
@@ -40,27 +41,28 @@ class MoveTool:
     def current_scene(self):
         return self.scene_name_getter()
     def move_sprites(self,group):
-        pressed = pygame.mouse.get_pressed()[1]
+        pressed = pygame.mouse.get_pressed()[2]
         scene = self.current_scene()
         for i,sprite in enumerate(group):
             key = self.key_getter(sprite)
-            if pressed and sprite.rect.collidepoint(pygame.mouse.get_pos()):
+            if (pressed or self.alt_pressed) and sprite.rect.collidepoint(pygame.mouse.get_pos()):
                 if not 0<pygame.mouse.get_pos()[0]<WINDOW_WIDTH  or not 0<pygame.mouse.get_pos()[1]<WINDOW_HEIGHT:
                     break
                 self.sprite_dragged.append(sprite) if sprite not in self.sprite_dragged else None
                 if len(self.sprite_dragged) > 1:
                    continue
-                if not sprite.rects:
+                if not getattr(sprite, 'rects', None):
                     sprite.rect.center = pygame.mouse.get_pos()
                 else:
                     for rect in sprite.rects: rect.center = pygame.mouse.get_pos()
 
                 self.dragged = True
                 break
-            elif not pressed and sprite.rect.collidepoint(pygame.mouse.get_pos()) and self.dragged:
+            elif not (pressed or self.alt_pressed) and sprite.rect.collidepoint(pygame.mouse.get_pos()) and self.dragged:
                 self.dragged = False
+                print('dragged')
                 self.sprite_dragged.clear()
-                if not sprite.rects:
+                if not getattr(sprite, 'rects', None):
                     self.data[scene][key] = sprite.rect.center
                 else:
                     self.data[scene][key] = [rect.center for rect in sprite.rects]
@@ -90,12 +92,12 @@ class MoveTool:
                 for rect, p in zip(sprite.rects, pos):
                     rect.center = tuple(p)
     def save_sprite_pos(self):
-        if not os.path.exists('../SpriteData'):
-            os.makedirs('../SpriteData')
-        with open(join('../SpriteData', 'Sprite_Positions' '.txt'), 'w') as pos_file:
+        if not os.path.exists('SpriteData'):
+            os.makedirs('SpriteData')
+        with open(join(ROOT_DIR,'SpriteData', 'Sprite_Positions' '.txt'), 'w') as pos_file:
             json.dump(self.data, pos_file,indent=2)
     def load_sprite_pos(self):
-        path = join('../SpriteData', 'Sprite_Positions' '.txt')
+        path = join(ROOT_DIR,'SpriteData', 'Sprite_Positions' '.txt')
         if os.path.exists(path):
             with open(path, 'r') as pos_file:
                 return json.load(pos_file)

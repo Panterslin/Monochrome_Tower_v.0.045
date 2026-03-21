@@ -69,6 +69,7 @@ class Item(AnimatedObject):
             '*': operator.truediv,
             '/': operator.mul,
         }
+        #self.append_to_player_data()
     def find_objects_in_slot(self,enable_previous=None): #finds all items in the same slot
         stack = [itm for itm in self.groups[0]
         if itm.rect.center == self.rect.center and itm.image_name == self.image_name]
@@ -108,7 +109,13 @@ class Item(AnimatedObject):
             self.find_starting_pos()
     def append_to_player_data(self):
         Player0.Data['Items'].append(self.image_name)
-    def display_in_overworld(self,pos=(WINDOW_WIDTH,WINDOW_HEIGHT),size=None):
+    def display_in_overworld(self,scene_manager=None,pos=(WINDOW_WIDTH,WINDOW_HEIGHT),size=None):
+        if scene_manager.current_scene == 'Inventory': # disable in inventory
+            """self.image.set_alpha(100)                this is not working
+            if self.rect.collidepoint(pygame.mouse.get_pos()):
+                self.show_description()"""
+            return False
+        print('failed to hide')
         self.pressed = pygame.mouse.get_pressed()[0]
         if size is not None and not self.scaled:
             self.image = pygame.transform.scale_by(self.image, size)
@@ -319,10 +326,11 @@ class Item(AnimatedObject):
         return False
     def unconditional_update(self):
         self.lasting_effect()
-    def show_description(self,font='../Fonts/PixelFont.ttf',size=15):
+    def show_description(self,font=None,size=15):
         if self.disabled:
             return
-        font = pygame.font.Font(font, size)
+        font =pygame.font.Font(FONT_PATH,size) if font is None else pygame.font.Font(font, size)
+
         text = font.render(self.description, True, 'black')
         bg = pygame.Surface((text.get_width() + 40, text.get_height() + 40), flags=pygame.SRCALPHA)
         bg.fill('white')
@@ -564,7 +572,7 @@ class Note(Item):
         self.visible = True if self.click_counter >= 2 else False
         self.disabled = True if self.click_counter >= 2 else False
         self.image.set_alpha(0)
-    def show(self,font='../Fonts/PixelFont.ttf',size=20):
+    def show(self,font=FONT_PATH,size=20):
         if self.visible:
             self.image.set_alpha(0)
             font = pygame.font.Font(font, size)
@@ -583,24 +591,24 @@ class Note(Item):
             self.image.set_alpha(255)
         return self.visible
 
-Notes = {'Test_Note':lambda:Note('../Notes','Test_Note',[Items_group,Notes_group],"Test note",Inventory_slots)}
+Notes = {'Test_Note':lambda:Note('Notes','Test_Note',[Items_group,Notes_group],"Test note",Inventory_slots)}
 OneTimeUseItems = {
-    'Bottle':lambda:OnetimeUseItem('../Items','Bottle',
+    'Bottle':lambda:OnetimeUseItem('Items','Bottle',
 [Items_group,OneTimeUseItems_group],Player0.Data,'+',20,'Item:a bottle of sanity\n'
     'Old habits die hard\n+20 Sanity',Inventory_slots,target_keys=['Sanity']),
-    'Powdered Happiness':lambda:OnetimeUseItem('../Items','Powdered Happiness',[Items_group,OneTimeUseItems_group],
+    'Powdered Happiness':lambda:OnetimeUseItem('Items','Powdered Happiness',[Items_group,OneTimeUseItems_group],
     Player0.Data,'clamp-',0,'Item:powdered happiness\n prevents the loss of sanity\n duration:3 rooms',Inventory_slots,target_keys=['Sanity'],
     duration=3,duration_unit='Current_Room',class_targets=[Player0]),
 
 }
 Equipment_Items = {
-'Sack':lambda:Equipment('../Equipment','Sack',
+'Sack':lambda:Equipment('Equipment','Sack',
 [Items_group,Equipment_group],Player0.Data,['-','+'],[20,40],"Armor:Sack \n "
     "live and die a slave\n +40 MaxHp -20 MaxSanity",Inventory_slots,['Max_Sanity','Max_HP'],'Helmet'),
-'Helmet':lambda:Equipment('../Equipment','Helmet',
+'Helmet':lambda:Equipment('Equipment','Helmet',
 [Items_group,Equipment_group],Player0.Data,'+',20,"Armor: Helmet \n Tad bit rusty, but reliable \n"
 "+20Max_HP",Inventory_slots,['Max_HP'],'Helmet'),
-'Crusade':lambda:Equipment('../Equipment','Crusade',
+'Crusade':lambda:Equipment('Equipment','Crusade',
 [Items_group,Equipment_group],Player0.Data,'+',20,"Armor: Crusade \n"
 "Inscription reads:\n Deus Vult \n+20 Defense",Inventory_slots,['Defense'],'ChestPlate')
 

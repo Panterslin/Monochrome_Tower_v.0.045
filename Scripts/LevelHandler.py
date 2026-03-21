@@ -10,10 +10,10 @@ class Room:
     def run(self):
         self.scene_manager.set_scene(self.scene_type)
 Doors ={
-    'Door0':lambda:Door('../Doors','Door0',0,0,'Door0_alt.png',0),
-    'Door10':lambda:Door('../Doors','Door10',0,0,'Door10_alt.png',10),
-    'Door20':lambda:Door('../Doors','Door20',0,0,'Door20_alt.png',20),
-    'Boss':lambda:Door('../Doors','BossDoor',0,0,'BossDoor_alt.png',0)
+    'Door0':lambda:Door('Doors','Door0',0,0,'Door0_alt.png',0),
+    'Door10':lambda:Door('Doors','Door10',0,0,'Door10_alt.png',10),
+    'Door20':lambda:Door('Doors','Door20',0,0,'Door20_alt.png',20),
+    'Boss':lambda:Door('Doors','BossDoor',0,0,'BossDoor_alt.png',0)
 }
 class LevelHandler:
     def __init__(self, data_corridor,data_room, room_count=8):
@@ -34,7 +34,7 @@ class LevelHandler:
         self.guaranteed_candidates = [(room_key, room_info) for room_key, room_info in self.data_corridor.items() if len(room_info)==3]
         self.title = None
     def title_flash(self,title):
-        self.title = AppearingLabel(0.03,title,'white',WINDOW_WIDTH/2,WINDOW_HEIGHT/2,120,'PixelFont.ttf',(800,120),(80,90))
+        self.title = AppearingLabel(0.03,title,'white',WINDOW_WIDTH/2,WINDOW_HEIGHT/2,120,FONT_PATH,(800,120),(80,90))
     def generate_door(self):
         if self.number_of_rooms <= self.current_room:
             return 'Boss'

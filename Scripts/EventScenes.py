@@ -4,8 +4,8 @@ from Scripts.Items import OneTimeUseItems
 from Settings import *
 from Game_Data import ImageObject, Button, SupportVariables
 from Labels import AppearingLabel,InputArea
-from Groups import Input_group
-from Items import Equipment_Items
+from Groups import Input_group,Overworld_items_group
+from Items import Equipment_Items,Items_group
 from LevelHandler import LevelHandler
 import random
 class Scene:
@@ -19,25 +19,23 @@ class Bile(Scene):
                              True,(WINDOW_WIDTH/8.5,WINDOW_HEIGHT/3.2))
         self.Button2 = Button(WINDOW_WIDTH/1.5,WINDOW_HEIGHT/3.1,'TOUCH',200,70,True,50,
                               True,(WINDOW_WIDTH/1.49,WINDOW_HEIGHT/3.2))
-        self.BileIntro = ImageObject('../Scenes','BileIntro',WINDOW_WIDTH/2,WINDOW_HEIGHT/2)
+        self.BileIntro = ImageObject('Scenes','BileIntro',WINDOW_WIDTH/2,WINDOW_HEIGHT/2)
         self.Label = AppearingLabel(0.03,'Silence                        fills the room99','white',200,50,80)
     def run(self):
             screen.blit(self.BileIntro.image,self.BileIntro.rect)
             if self.Button.update():
-                self.scene_manager.create_scene()
+                self.scene_manager.create_scene('Corridor')
                 self.levelHandler.current_room -=1
                 self.levelHandler.load_corridor(Player0.Data['Corridor'])
-                self.scene_manager.set_scene('Corridor')
             if self.Button2.update():
                 SupportVariables.door = 'Bile'
-                self.scene_manager.create_scene()
-                self.scene_manager.set_scene('Battle')
+                self.scene_manager.create_scene('Battle')
             self.Label.dynamic_render(False,True,True,True)
 class Fireplace(Scene):
     def __init__(self,scene_manager=None,player=None):
         super().__init__(scene_manager)
         self.player = player
-        self.Fireplace = ImageObject('../Scenes','Fireplace',WINDOW_WIDTH/2,WINDOW_HEIGHT/2)
+        self.Fireplace = ImageObject('Scenes','Fireplace',WINDOW_WIDTH/2,WINDOW_HEIGHT/2)
         self.Label = AppearingLabel(0.03,'FEEL THE WARMTH','white',WINDOW_WIDTH/2,50,80)
         self.Label2 = AppearingLabel(0.03,'YOU FEEL REJUVENATED','white',WINDOW_WIDTH/2,50,80)
         self.Button = Button(WINDOW_WIDTH/6,WINDOW_HEIGHT/3.1,'REST',200,70,True,50)
@@ -54,14 +52,13 @@ class Fireplace(Scene):
             self.start_render = True
         if self.start_render:
             if self.Label2.dynamic_render(False,False,True):
-                self.scene_manager.create_scene()
-                self.scene_manager.set_scene('Corridor')
+                self.scene_manager.create_scene('Corridor')
 class Riddle(Scene):
     def __init__(self,scene_manager=None):
         super().__init__(scene_manager)
-        self.input = InputArea('white','PixelFont.ttf',220,WINDOW_HEIGHT-200, 80,(1000,150),(20,WINDOW_HEIGHT),True,'black')
+        self.input = InputArea('white',FONT_PATH,220,WINDOW_HEIGHT-200, 80,(1000,150),(20,WINDOW_HEIGHT),True,'black')
         Input_group.add(self.input)
-        self.Riddler = AnimatedObject('../NPCS','Riddler',WINDOW_WIDTH/2,WINDOW_HEIGHT-750)
+        self.Riddler = AnimatedObject('NPCS','Riddler',WINDOW_WIDTH/2,WINDOW_HEIGHT-750)
         self.Riddle = random.choice(Active_Riddles)
         self.label = AppearingLabel(0.03,self.Riddle[1],'white',100,100,60)
         self.wrong_answer_label = AppearingLabel(0.03,"Wrong",'white',WINDOW_WIDTH/1.4,WINDOW_HEIGHT/7,80)
@@ -82,26 +79,28 @@ class Riddle(Scene):
             if self.Riddle[0] == text and self.Reward is not None:
                 self.Reward.image.set_alpha(255)
                 self.Reward.disabled = False
-                if self.Reward.display_in_overworld((WINDOW_WIDTH/1.8,WINDOW_HEIGHT/7),1.8):  # if reward is taken
+                Overworld_items_group.add(self.Reward)
+                if self.Reward.display_in_overworld(self.scene_manager,(WINDOW_WIDTH/1.8,WINDOW_HEIGHT/7),1.8):  # if reward is taken
                     print('Item Taken')
+                    Overworld_items_group.remove(self.Reward)
+                    Items_group.add(self.Reward)
                     self.Riddler.animate()
                     Active_Riddles.remove(self.Riddle)
-                    self.scene_manager.create_scene()
+                    self.scene_manager.create_scene('Corridor')
                     Input_group.remove(self.input)
-                    self.scene_manager.set_scene('Corridor')
                     self.checked=False
                     self.Reward.stack()
             else:
                 self.Reward.kill()
                 if self.wrong_answer_label.dynamic_render(False, False, True,True):
-                    self.scene_manager.create_scene()
+                    self.scene_manager.create_scene('Corridor')
                     Input_group.remove(self.input)
-                    self.scene_manager.set_scene('Corridor')
                     self.checked=False
 
     def check_answer(self):
         if not self.checked:
             self.Reward = self.Riddle[2]()
+            Items_group.remove(self.Reward)
             self.Reward.image.set_alpha(0)
             self.Reward.disabled = True
         self.checked=True

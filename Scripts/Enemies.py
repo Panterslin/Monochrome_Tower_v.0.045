@@ -87,7 +87,7 @@ class StaticProjectile(EnemyProjectile):
             return self.alpha <= 0
         self.alpha -= Settings.dt*self.appearing_speed*5 if dt is None else dt*self.appearing_speed*5
         self.image.set_alpha(int(self.alpha))
-        if self.alpha <= 0:
+        if self.alpha <= 20:
             self.kill()
             return True
         return False
@@ -271,7 +271,7 @@ class Enemy(AnimatedObject):
         for letter in self.capital_name:
             letter.capitalize()
         self.image_l = len(self.capital_name)*30
-        self.description = Label(self.capital_name,'white',int(self.rect.centerx),int(self.rect.centery),'PixelFont.ttf',
+        self.description = Label(self.capital_name,'white',int(self.rect.centerx),int(self.rect.centery),FONT_PATH,
                                  30,(self.image_l,40),(int(self.rect.centerx-self.image_l/4),int(self.rect.centery)),True,'black')
         print("enemy_init")
 
@@ -326,11 +326,11 @@ class Enemy(AnimatedObject):
         return next_scene
 """ moveset consists of: name of template constructor, custom name,damage_multiplier, difficulty """
 Enemies = {
-    'Rat': lambda: Enemy('../Enemies','Rat',50,50,15,0,(('Default','Scratch'),('Special','Bite'))),
-    'FatRat': lambda: Enemy('../Enemies','FatRat',100,100,5,10,(('Default','Scratch'),('Special','Bite'))),
-    'DecayingRat': lambda: Enemy('../Enemies','DecayingRat',40,40,45,20),
-    'Boss': lambda: Enemy('../Enemies','RatKing',250,250,30,0,(('Default','Shank'),('Special','Gutting')),
+    'Rat': lambda: Enemy('Enemies','Rat',50,50,15,0,(('Default','Scratch'),('Special','Bite'))),
+    'FatRat': lambda: Enemy('Enemies','FatRat',100,100,5,10,(('Default','Scratch'),('Special','Bite'))),
+    'DecayingRat': lambda: Enemy('Enemies','DecayingRat',40,40,45,20),
+    'Boss': lambda: Enemy('Enemies','RatKing',250,250,30,0,(('Default','Shank'),('Special','Gutting',1,3)),
                           2,WINDOW_WIDTH/1.5,WINDOW_HEIGHT/2.2,True),
-    'Bile':lambda:Enemy('../Enemies','Bile',700,700,60,100,(('Default','Vomit'),('Special','Harm')),8,
+    'Bile':lambda:Enemy('Enemies','Bile',700,700,60,100,(('Default','Vomit'),('Special','Harm')),8,
                         WINDOW_WIDTH/2,WINDOW_HEIGHT/2.2,True)
 }

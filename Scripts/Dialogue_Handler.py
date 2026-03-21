@@ -1,13 +1,75 @@
 import sys
-
+import operator
 from Save_Handler import json,join
 from Labels import AppearingLabel
-from Scripts.Game_Data import Button
+from Scripts.Game_Data import Button,AnimatedObject,SceneManager
+from Game_Data import AnimatedObject
 from Settings import *
+from Items import Notes,Equipment_Items,OneTimeUseItems
+from Groups import Characters_group
+global current_game # should be set by game class
+def load_character(character):
+    for ch in Characters_group.sprites():
+        if ch.name == character:
+            return ch
+    return None
+def load_anim(character,anim_name):
+    ch_sprite = load_character(character)
+    ch_sprite.animate()
+    ch_sprite.animation_play(ch_sprite.count_frames(anim_name),0.05,anim_name)
+def get_manager(game):
+    try: return game.SceneManager
+    except: return None
+def load_reward(reward):
+    def get_reward():
+        registry = {**Notes, **Equipment_Items, **OneTimeUseItems}
+        try:
+            cls = []
+            for item_name in reward:
+                clss = registry.get(item_name)
+                if clss is None:
+                    print(f"Unknown item: {item_name}")
+                    continue
+                rew_obj = clss()
+                cls.append(rew_obj)
+                return cls
+        except:
+            cls = registry.get(reward)
+            if cls is None:
+                print(f"Unknown item name: {reward}")
+                return None
+            return cls()
 
-file_path = '../Dialogues'
+    rewards = get_reward()
+    try: # disable in inventory, show in overworld
+        for reward in rewards:
+            reward.enabled = False
+            reward.image.set_alpha(0)
+    except:
+        rewards.enabled = False
+        rewards.image.set_alpha(0)
+
+
+
+operands = {
+ "=":operator.eq,
+ ">":operator.gt,
+ "<":operator.lt,
+ "<=":operator.le,
+ ">=":operator.ge,
+ "!=":operator.ne,
+}
+callbacks = { # o is an operator
+    'if':lambda arg1,arg2,o:o(arg1,arg2),
+    'reaction':lambda character,anim_name: load_anim(character,anim_name),
+    'trigger_scene':lambda scene_name: get_manager(current_game).create_scene(scene_name),
+    'trigger_reward':lambda reward: load_reward(reward),
+
+
+}
+file_path = 'Dialogues'
 def load_dialogue(file):
-    with open(join(file_path,file + '.json'), 'r') as f:
+    with open(join(ROOT_DIR,file_path,file + '.json'), 'r') as f:
         return json.load(f)
 def compute_dialogue(dialogue:list):
     offset = 0
@@ -80,7 +142,7 @@ class Test:
                         self.dialogue[self.current_node]['responses'][i] else self.dialogue[self.current_node]['nextNodeId']
                     self.current_node = next_node if self.dialogue[next_node]['nodeType'] == 0 else self.dialogue[next_node]['nextNodeId']
                     print(self.current_node)
-                    for node in self.dialogue:
+                    for node in self.dialogue: # find next node id
                         if node['id'] == self.current_node:
                             self.current_node = node['nextNodeId'] if node['nextNodeId'] else 0
                             break
@@ -96,4 +158,4 @@ class Test:
             pygame.display.update()
 
 
-Test().run()
+#Test().run()
