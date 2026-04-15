@@ -27,7 +27,6 @@ class Battle:
         self.attack_button = Button(WINDOW_WIDTH/2-300, WINDOW_HEIGHT/3-40, 'ATTACK',290,90,True,65,
                                     True,(WINDOW_WIDTH/2-295, WINDOW_HEIGHT/3-50))
     def adjust_enemy_attack(self):
-        #self.attack_board.damage_multiplier *= self.enemy.damage / 10
         self.attack_board.cursor = self.cursor
         self.enemy.adjust_attack(self.attack_board)
         self.attack_board.create_projectiles(int(self.attack_board.number_of_projectiles / 10))
