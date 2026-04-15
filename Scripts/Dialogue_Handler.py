@@ -89,7 +89,7 @@ def compute_dialogue(dialogue:list):
 
 class Test:
     def __init__(self):
-        self.dialogue = load_dialogue('sample_dialogue')
+        self.dialogue = load_dialogue('sample2')
         self.current_node =0
         self.label = AppearingLabel(0.03, self.dialogue[self.current_node]['text'], 'white', WINDOW_WIDTH/2, 100)
         self.buttons = []
@@ -111,14 +111,20 @@ class Test:
             return
         # Layout buttons across the screen
         spacing = WINDOW_WIDTH / max(1, len(responses))
-        x = 300
+        x = spacing/ max(1, len(responses))
         y = 300
         for rid in responses:
             for nodes in self.dialogue:
                 if rid ==  nodes['id']:
                     txt = nodes['text']
-                    self.buttons.append(Button(x, y, txt, 200, 80, True, 40, True, (x + 60, y + 10)))
-                    x += spacing
+                    new_btn = Button(x, y, txt, 200 if len(txt)<5 else 30*len(txt)
+                    ,80, True, 40, True, (x + 60, y + 10))
+                    self.buttons.append(new_btn)
+                    if x + spacing + 30*len(txt)*4 < WINDOW_WIDTH:
+                        x += spacing
+                    else:
+                        x=spacing/ max(1, len(responses))
+                        y+=200
                     break
     def compute_dialogue_callbacks(self):
         for node in self.dialogue:
@@ -137,25 +143,27 @@ class Test:
             self.label.dynamic_render()
             for i, btn in enumerate(self.buttons):
                 if btn.update():
-                        # go to the response node that this button represents
-                    next_node = self.dialogue[self.current_node]['responses'][i] if \
-                        self.dialogue[self.current_node]['responses'][i] else self.dialogue[self.current_node]['nextNodeId']
-                    self.current_node = next_node if self.dialogue[next_node]['nodeType'] == 0 else self.dialogue[next_node]['nextNodeId']
-                    print(self.current_node)
-                    for node in self.dialogue: # find next node id
-                        if node['id'] == self.current_node:
-                            self.current_node = node['nextNodeId'] if node['nextNodeId'] else 0
-                            break
-                    print(self.current_node)
-                    for node in self.dialogue:
-                        if node['id'] == self.current_node:
-                            txt = node['text']
-                            break
-                    self.label = AppearingLabel(0.03, txt, 'white',  WINDOW_WIDTH/2, 100)
-                    self._build_buttons_for_node(self.current_node)
-                    break
+                        for node in self.dialogue:
+                            if node['id'] == self.current_node:
+                                next_node = node['responses'][i] if \
+                                node['responses'][i] else node['nextNodeId']
+                                self.current_node = next_node
+                                break
+                        print(self.current_node)
+                        for node in self.dialogue:
+                            if node['id'] == self.current_node:
+                                self.current_node = node['nextNodeId'] if node['nextNodeId'] else 0
+                                break
+                        print(self.current_node)
+                        for node in self.dialogue:
+                            if node['id'] == self.current_node:
+                                txt = node['text']
+                                break
+                        self.label = AppearingLabel(0.03, txt, 'white',  WINDOW_WIDTH/2, 100)
+                        self._build_buttons_for_node(self.current_node)
+                        break
 
             pygame.display.update()
 
 
-#Test().run()
+Test().run()

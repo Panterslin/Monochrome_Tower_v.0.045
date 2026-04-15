@@ -331,6 +331,6 @@ Enemies = {
     'DecayingRat': lambda: Enemy('Enemies','DecayingRat',40,40,45,20),
     'Boss': lambda: Enemy('Enemies','RatKing',250,250,30,0,(('Default','Shank'),('Special','Gutting',1,3)),
                           2,WINDOW_WIDTH/1.5,WINDOW_HEIGHT/2.2,True),
-    'Bile':lambda:Enemy('Enemies','Bile',700,700,60,100,(('Default','Vomit'),('Special','Harm')),8,
+    'Bile':lambda:Enemy('Enemies','Bile',700,700,60,100,(('Default','Vomit',1,4),('Special','Harm',1.5,3)),8,
                         WINDOW_WIDTH/2,WINDOW_HEIGHT/2.2,True)
 }

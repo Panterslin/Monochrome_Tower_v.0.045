@@ -35,7 +35,7 @@ class Battle:
         if Current_Weapon.clicked and not pygame.mouse.get_pressed()[0]:
             Current_Weapon.clicked = False
         if self.player.Data['HP']<=0:
-            self.scene_manager.set_scene('Death')
+            self.scene_manager.create_scene('Death')
             self.battle_state="Pre_round"
             SupportVariables.clicked=False
         """Sprites setup"""
@@ -113,7 +113,7 @@ class Battle:
                     self.dmg_lbl.__init__(0.05, str(Current_Weapon.damage), 'white', WINDOW_WIDTH / 2 - 100,
                                           WINDOW_HEIGHT / 2 - 100,
                                           50, FONT_PATH)
-                if Current_Weapon.turn >= Current_Weapon.attack_speed:
+                elif Current_Weapon.turn >= Current_Weapon.attack_speed:
                     self.attack_board = self.enemy.choose_an_attack()
                     self.adjust_enemy_attack()
                     self.battle_state = 'Defense'
@@ -133,7 +133,7 @@ class Battle:
                 self.player.Data['Current_Room'] += 1
                 self.scene_manager.create_scene('Corridor')
             else:
-                self.scene_manager.set_scene('End')
+                self.scene_manager.create_scene('End')
             self.battle_state = "Pre_round"
             self.item_used=False
             self.enemy_killed = False

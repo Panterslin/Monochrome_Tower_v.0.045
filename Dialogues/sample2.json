@@ -1,0 +1,89 @@
+[
+    {
+        "id": 0,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [
+            2,
+            3
+        ],
+        "selected_callbacks": [],
+        "text": "say gex?"
+    },
+    {
+        "id": 8,
+        "nextNodeId": 11,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "When I am ready"
+    },
+    {
+        "id": 2,
+        "nextNodeId": 9,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "No"
+    },
+    {
+        "id": 3,
+        "nextNodeId": 5,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Yes"
+    },
+    {
+        "id": 5,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [
+            6,
+            7,
+            8
+        ],
+        "selected_callbacks": [],
+        "text": "When?"
+    },
+    {
+        "id": 6,
+        "nextNodeId": 10,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Yes"
+    },
+    {
+        "id": 7,
+        "nextNodeId": 10,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Now"
+    },
+    {
+        "id": 9,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Fuck you man"
+    },
+    {
+        "id": 10,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Nice"
+    },
+    {
+        "id": 11,
+        "nextNodeId": -1,
+        "nodeType": 0,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "Don't edge me like that"
+    }
+]

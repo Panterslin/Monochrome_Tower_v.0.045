@@ -1,12 +1,12 @@
 {
     "HP": 100,
-    "Sanity": 150,
-    "Max_HP": 100,
+    "Sanity": 80,
+    "Max_HP": 120,
     "Max_Sanity": 150,
-    "Defense": 0,
+    "Defense": 20,
     "Money": 0,
     "Current_Floor": 1,
-    "Current_Room": 3,
+    "Current_Room": 8,
     "Level": 1,
     "Experience": 0,
     "Items": [
@@ -18,8 +18,8 @@
         "Crusade_equipped"
     ],
     "Corridor": [
-        "Door20",
-        "Door20",
-        "Door20"
+        null,
+        "Boss",
+        null
     ]
 }

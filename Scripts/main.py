@@ -56,11 +56,11 @@ class End(Scene):
             SupportVariables.click_checker = True
             if self.return_menu.update(True):
                 restart(Game_)
-                self.scene_manager.set_scene('Menu')
+                self.scene_manager.create_scene('Menu')
         else:
             if self.return_menu.update(False):
                 restart(Game_)
-                self.scene_manager.set_scene('Menu')
+                self.scene_manager.create_scene('Menu')
 class Menu(Scene):
     def __init__(self, display, scene_manager):
         super().__init__(display, scene_manager)
