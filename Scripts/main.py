@@ -4,9 +4,7 @@ from Enemies import Enemies,EnemyAttackBoard
 from Save_Handler import save_data,load_data,update_data,Player_Data
 from Scripts import Items
 from Weapons import Current_Weapon"""
-import pygame
 from pygame import SCALED, FULLSCREEN
-from Items import Notes
 from LevelHandler import *
 from EventScenes import *
 from BattleHandler import *
@@ -14,7 +12,6 @@ import EventScenes
 import time
 from Dialogue_Handler import *
 import Dialogue_Handler
-from Scripts import DevTools
 import Groups
 """Timers"""
 """display"""
@@ -89,6 +86,7 @@ class Menu(Scene):
     def run(self):
 
         self.attack_board.update(Settings.dt)
+        self.cursor.animation_play(anim_speed=0.5,dt=Settings.dt)
         self.title_label.update(lambda label: label.dynamic_render())
         self.cursor.update(Cursor.show,self.attack_board.rect)
         if self.cursor.collide_with_projectiles(self.attack_board.projectiles):
@@ -125,6 +123,7 @@ class Corridor(Scene):
         self.player = player
         self.ui = Base_UI
         self.room_score = room_score
+        Game_.Menu_.cursor.image.set_alpha(0)
         self.floor_score = floor_score
         self.enemy=None
         SupportVariables.click_checker = False
@@ -143,7 +142,9 @@ class Corridor(Scene):
         self.level.update() if self.level is not None else None
     def run(self):
         pygame.mouse.set_visible(True)
+
         Vermin_I_Deco.animate()
+        Game_.Menu_.cursor.image.set_alpha(0)
         Vermin_I_Deco.animation_play(14, 2, '', 'topleft', Settings.dt)
         self.ui.update()
         room_score.dynamic_update(self.player.Data['Current_Room'])
@@ -151,20 +152,21 @@ class Corridor(Scene):
         level_update_result = self.level.update()
         if level_update_result is not None:
             if level_update_result[1] == 'Battle':
-                self.scene_manager.create_scene('Battle')
-                SupportVariables.door=level_update_result[0]
+               self.scene_manager.create_scene('Battle')
+               print('Ratted')
+               SupportVariables.current_enemy=level_update_result[0]
             elif level_update_result[1] == 'Bile':
-                SupportVariables.door=level_update_result[0]
+                SupportVariables.current_enemy=level_update_result[0]
                 self.scene_manager.create_scene('Bile')
             elif level_update_result[1] == 'Fireplace':
                 self.scene_manager.create_scene('Fireplace')
             elif level_update_result[1] == 'Riddle':
                 self.scene_manager.create_scene('Riddle')
             else:
-                #self.scene_manager.set_scene(self.level.generate_scene())
                 print(self.level.generate_scene())
+                print('Ratted')
                 self.enemy = 'Rat'
-                SupportVariables.door='Rat'
+                SupportVariables.current_enemy='Rat'
                 self.scene_manager.create_scene('Battle')
         for item in Items_group:
             item.unconditional_update()
@@ -360,13 +362,14 @@ class Game:
     def __init__(self):
         global Game_ID
         pygame.init()
+        self.test_dialogue = Test()
         self.game_state = None
         self.floor = 'floor1'
         self.level =None
         self.clock = pygame.time.Clock()
         self.Player = Player0
         self.screen = screen
-        self.Enemy =Enemies['Rat']()
+        self.Enemy =None
         self.Fullscreen = Fullscreen
 
         self.SceneManager = SceneManager('Menu')
@@ -401,6 +404,7 @@ class Game:
         while SupportVariables.Running:
             global Game_ID
 
+            Dialogue_Handler.current_game = self
             self.DevTools_Move.move_sprites(self.DevTools_Move.group)
             screen.fill((0,0,0))
             Settings.dt = clock.tick(60)/1000.0
@@ -463,11 +467,15 @@ class Game:
 
 
             if self.SceneManager.instantiate:
+                self.SceneManager.protect = True
                 name = self.SceneManager.get_scene()
                 cls = classes[name]
                 if name == 'Battle':
-                    self.Enemy = Enemies[SupportVariables.door]()
+                    print(SupportVariables.current_enemy)
+                    self.Enemy = Enemies[SupportVariables.current_enemy]() \
+                    if SupportVariables.current_enemy is not None else Enemies[self.SceneManager.enemy]()
                     self.create_scene(name, cls, self.Player, self.Enemy,self,Game_ID)
+                    """In case the battle doesn't emerge from the corridor """
                 elif name == 'Corridor' or name == 'Fireplace':
                     self.create_scene(name, cls,self.Player)
                 elif name == 'Bile':
@@ -475,9 +483,14 @@ class Game:
                     self.create_scene(name,cls,Level)
                 else:
                     self.create_scene(name, cls)
+            else:
+                self.SceneManager.protect = False
             self.Scenes[self.SceneManager.get_scene()].run()
             for item in Items_group:
                 item.unconditional_update()
+            if self.SceneManager.current_scene == 'Menu':
+                pass
+                #self.test_dialogue.update()
             pygame.display.update()
             pygame.display.set_caption("Monochrome Tower")
 

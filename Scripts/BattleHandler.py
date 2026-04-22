@@ -54,7 +54,7 @@ class Battle:
             pygame.mouse.set_visible(True)
             if self.attack_button.update():
                 self.turn_check=0
-                print(SupportVariables.door)
+                print(SupportVariables.current_enemy)
                 self.battle_state = 'Battle_init'
             if self.Item_button.update() and not self.item_used:
                 self.scene_manager.previous_scene='Battle'
@@ -80,7 +80,7 @@ class Battle:
         elif self.battle_state == 'attack':
             self.dmg_lbl.dynamic_render(False, False, True)
             if Current_Weapon.deal_damage > 0:
-                if Current_Weapon.animation_play(4, 2, 'Attack_', '', Settings.dt):
+                if Current_Weapon.animation_play(4, 2, 'Attack_', '', Settings.dt,background=False):
                     Current_Weapon.inflict_damage(self.enemy)
                     Current_Weapon.frame=1
                     if self.enemy.hp <= 0:
@@ -128,8 +128,9 @@ class Battle:
         if Main_Timer.update():
             update_data(Player_Data, self.game.Player.Data)
             save_data(self.game_id, self.game.Player.Data)
-            if SupportVariables.door != 'Boss':
+            if SupportVariables.current_enemy != 'Boss':
                 self.player.Data['Current_Room'] += 1
+                SupportVariables.current_enemy=None
                 self.scene_manager.create_scene('Corridor')
             else:
                 self.scene_manager.create_scene('End')

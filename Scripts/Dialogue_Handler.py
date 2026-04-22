@@ -62,8 +62,8 @@ operands = {
 callbacks = { # o is an operator
     'if':lambda arg1,arg2,o:o(arg1,arg2),
     'reaction':lambda character,anim_name: load_anim(character,anim_name),
-    'trigger_scene':lambda scene_name: get_manager(current_game).create_scene(scene_name),
-    'trigger_reward':lambda reward: load_reward(reward),
+    'triggerScene':lambda scene_name,enemy: get_manager(current_game).create_scene(scene_name,enemy), # enemy is optional
+    'triggerReward':lambda reward: load_reward(reward),
 
 
 }
@@ -91,10 +91,13 @@ class Test:
     def __init__(self):
         self.dialogue = load_dialogue('sample2')
         self.current_node =0
-        self.label = AppearingLabel(0.03, self.dialogue[self.current_node]['text'], 'white', WINDOW_WIDTH/2, 100)
-        self.buttons = []
-        self._build_buttons_for_node(self.current_node)
-
+        self.called = False
+        for node in self.dialogue:
+            if node['id'] == self.current_node:
+                self.label = AppearingLabel(0.03, node['text'], 'white', WINDOW_WIDTH/2, 100)
+                self.buttons = []
+                self._build_buttons_for_node(node['id'])
+                break
         #compute_dialogue(load_dialogue('sample_dialogue'))
 
     def _build_buttons_for_node(self, node_idx):
@@ -107,7 +110,7 @@ class Test:
         node = self.dialogue[node_idx]
         responses = node.get('responses', [])
         if not responses:
-            self.current_node = self.dialogue[node_idx]['nextNodeId']
+            #self.current_node = self.dialogue[node_idx]['nextNodeId']
             return
         # Layout buttons across the screen
         spacing = WINDOW_WIDTH / max(1, len(responses))
@@ -126,22 +129,48 @@ class Test:
                         x=spacing/ max(1, len(responses))
                         y+=200
                     break
-    def compute_dialogue_callbacks(self):
-        for node in self.dialogue:
-            if len(node['selected_callbacks'])>0:
-                for callback in node['selected_callbacks']:
-                    callback()
+    def compute_dialogue_callbacks(self,node_idx):
+        current_node = None
+        registry = {**operands, **callbacks}
+        for i,node in enumerate(self.dialogue):
+            if node['id'] == node_idx:
+                current_node = node
+                break
+        if len(current_node['selected_callbacks'])<1:
+            return
+        else:
+            for callback in current_node['selected_callbacks']:
+                parts = callback.split('_')
+                op_call = registry.get(parts[2]) if len(parts)>2 else None
+                call = registry.get(parts[0])
+                if call is None:
+                    print(f"Warning: Callback '{parts[0]}' not found in registry.")
+                    continue  # Skip to the next callback
+                print('called'+parts[0])
+                if op_call is not None:
+                    call(parts[1],parts[3],op_call)
+                    return
+                if len(parts)==2:
+                    call(parts[1])
+                    return
+                elif len(parts)==3:
+                    call(parts[1],parts[2])
+                    return
+                elif len(parts)==4:
+                    call(parts[1],parts[2],parts[3])
+                    return
+                print('call failed')
 
-    def run(self):
-        while True:
+    def update(self):
+            pygame.mouse.set_visible(True)
             screen.fill('black')
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-
-            self.label.dynamic_render()
+            if self.label.dynamic_render() and not self.called:
+                print(self.current_node)
+                self.called = True
+                self.compute_dialogue_callbacks(self.current_node)
             for i, btn in enumerate(self.buttons):
+                if len(self.buttons) == 0:
+                    return
                 if btn.update():
                         for node in self.dialogue:
                             if node['id'] == self.current_node:
@@ -152,7 +181,7 @@ class Test:
                         print(self.current_node)
                         for node in self.dialogue:
                             if node['id'] == self.current_node:
-                                self.current_node = node['nextNodeId'] if node['nextNodeId'] else 0
+                                self.current_node = node['nextNodeId'] if node['nextNodeId']!=-1 else node['id']
                                 break
                         print(self.current_node)
                         for node in self.dialogue:
@@ -160,10 +189,12 @@ class Test:
                                 txt = node['text']
                                 break
                         self.label = AppearingLabel(0.03, txt, 'white',  WINDOW_WIDTH/2, 100)
+                        self.called=False
+
                         self._build_buttons_for_node(self.current_node)
                         break
 
             pygame.display.update()
 
 
-Test().run()
+#Test().run()

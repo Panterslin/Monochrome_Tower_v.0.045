@@ -118,7 +118,9 @@ class EnemyAttackBoard(EnemyAttack):
     def __init__(self, name='', p_cursor=cursor, damage_multiplier=1,difficulty=1, cost=1, effect="", total_time=10, number_of_projectiles=30, projectile_speed=500, projectile_size=(10,10),
                  projectile_types=(DelayedSeekingProjectile,StaticProjectile)):
         super().__init__(name,damage_multiplier,difficulty,cost,effect,total_time)
-        self.image = pygame.Surface((500, 500))
+        self.image = pygame.image.load(os.path.join(ROOT_DIR, "UI", "attack_board.png"))
+        self.background = pygame.Surface((500,500))
+        self.image = pygame.transform.scale(self.image,(500,500))
         self.rect = self.image.get_frect(center=(300, 500))
         if projectile_types is None:
             projectile_types = ['Seeking']
@@ -137,14 +139,14 @@ class EnemyAttackBoard(EnemyAttack):
         self.set_borders()
     def set_borders(self):
         for i in range(2):
-            self.board_border_surfaces.append(pygame.Surface((500,10)))
-            self.board_border_surfaces.append(pygame.Surface((10,510)))
+            self.board_border_surfaces.append(pygame.Surface((460,10)))
+            self.board_border_surfaces.append(pygame.Surface((10,440)))
         for i in self.board_border_surfaces:
-            i.fill('white')
-        self.board_border.append(self.board_border_surfaces[0].get_frect(topleft=(self.rect.left,self.rect.bottom-10)))
-        self.board_border.append(self.board_border_surfaces[1].get_frect(topright=(self.rect.right,self.rect.top-10)))
-        self.board_border.append(self.board_border_surfaces[2].get_frect(topright=(self.rect.right, self.rect.top-10)))
-        self.board_border.append(self.board_border_surfaces[3].get_frect(topleft=(self.rect.left-10, self.rect.top-10)))
+            i.fill('black')
+        self.board_border.append(self.board_border_surfaces[0].get_frect(topleft=(self.rect.left+15,self.rect.bottom-40)))
+        self.board_border.append(self.board_border_surfaces[1].get_frect(topright=(self.rect.right-20,self.rect.top+25)))
+        self.board_border.append(self.board_border_surfaces[2].get_frect(topright=(self.rect.right-25, self.rect.top+25)))
+        self.board_border.append(self.board_border_surfaces[3].get_frect(topleft=(self.rect.left+10, self.rect.top+25)))
     def spawn_pos_rng(self,static=False):
         posx = random.randint(int(self.rect.left), int(self.rect.right))
         posy = random.randint(int(self.rect.top), int(self.rect.bottom))
@@ -213,6 +215,8 @@ class EnemyAttackBoard(EnemyAttack):
     def update(self,dt=None,func=None)->bool:
         if dt is None:
             dt = Settings.dt
+        screen.blit(self.background, self.rect)
+        self.cursor.animation_play(anim_speed=2,dt=Settings.dt,image_size=0.2)
         screen.blit(self.image, self.rect)
         for i in range(len(self.board_border_surfaces)):
             screen.blit(self.board_border_surfaces[i], self.board_border[i])

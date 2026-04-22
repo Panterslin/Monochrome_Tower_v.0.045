@@ -1,5 +1,13 @@
 [
     {
+        "id": 8,
+        "nextNodeId": 11,
+        "nodeType": 1,
+        "responses": [],
+        "selected_callbacks": [],
+        "text": "When I am ready"
+    },
+    {
         "id": 0,
         "nextNodeId": -1,
         "nodeType": 0,
@@ -9,14 +17,6 @@
         ],
         "selected_callbacks": [],
         "text": "say gex?"
-    },
-    {
-        "id": 8,
-        "nextNodeId": 11,
-        "nodeType": 1,
-        "responses": [],
-        "selected_callbacks": [],
-        "text": "When I am ready"
     },
     {
         "id": 2,
@@ -67,7 +67,9 @@
         "nextNodeId": -1,
         "nodeType": 0,
         "responses": [],
-        "selected_callbacks": [],
+        "selected_callbacks": [
+            "triggerScene_Battle_Bile"
+        ],
         "text": "Fuck you man"
     },
     {

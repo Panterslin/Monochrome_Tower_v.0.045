@@ -16,7 +16,7 @@ Main_Timer=Timer(0.5,False,False)
 class SupportVariables:
     def __init__(self):
         # Global Variables
-        self.door = ''
+        self.current_enemy = None
         self.clicked = False
         self.click_checker = False
         self.Rain_Wave_started = False
@@ -38,9 +38,19 @@ class SceneManager:
         self.previous_scene = None
         self.Game_Running=False
         self.instantiate = False
-    def create_scene(self,scene_name,isolate_spr=False):
+        self.enemy = None # for storing enemies passed to the manager by dialogue_handler (patchwork fix)!
+        self.protect = False # protecting from multiple instantiations
+    def create_scene(self,scene_name,enemy=None):
+        if self.protect:
+            print('protected')
+            return
+        if enemy is not None:
+           SupportVariables.current_enemy = enemy # creates enemies
+           self.enemy = SupportVariables.current_enemy
+           print(SupportVariables.current_enemy + 'managed')
         self.instantiate = True
         self.current_scene = scene_name
+        self.protect = True
     def get_scene(self):
         self.instantiate = False
         return self.current_scene
@@ -102,7 +112,9 @@ class AnimatedObject(ImageObject):
             return len(os.listdir(join(ROOT_DIR,self.image_folder_name, self.image_name)))
         else:
             return len(os.listdir(join(ROOT_DIR,self.image_folder_name, self.image_name, anim_type)))
-    def animation_play(self,frames=1,anim_speed=0.05,anim_type='',align_type='center',dt=None,background=False,visibility=True,image_size=None)->bool:
+    def animation_play(self,frames=None,anim_speed=0.05,anim_type='',align_type='center',dt=None,background=False,visibility=True,image_size=None)->bool:
+        if frames is None:
+            frames = self.count_frames(anim_type)
         end=False
         self.anim_name=anim_type
         if dt is None:
@@ -133,15 +145,20 @@ class AnimatedObject(ImageObject):
                 self.is_animating=False
                 end=True
         return end
-class Cursor(pygame.sprite.Sprite):
+class Cursor(AnimatedObject):
     def __init__(self):
-        super().__init__()
+        super().__init__(image_folder_name='UI',image_name='Heart_Pulse')
         self.image= pygame.surface.Surface((10,10))
-        self.image.set_alpha(0)
-        self.image.fill('red')
+        self.image = pygame.image.load(join(ROOT_DIR,'UI','Heart_Pulse','Heart_Pulse1.png')).convert_alpha()
+        #self.image.set_alpha(0)
+        #self.image.fill('red')
         self.rect = self.image.get_frect()
         self.mask = pygame.mask.from_surface(self.image)
     def update(self,func=None,*args):
+        if not self.is_animating:
+            self.animate()
+        self.animation_play(image_size=0.5,visibility=False)
+        self.image.set_alpha(0)
         self.rect.topleft = pygame.mouse.get_pos()
         if func is not None:
             func(self,*args)
@@ -257,6 +274,7 @@ class Door(AnimatedObject):
        self.mask = pygame.mask.from_surface(alt_image)
        screen.blit(self.image,self.rect)
        cursor.update()
+
        if self.rect.collidepoint((cursor.rect.x,cursor.rect.y)):
           if cursor_mask_collide(cursor,Door_group):
                 if pygame.mouse.get_pressed()[0]==1 and not self.clicked:

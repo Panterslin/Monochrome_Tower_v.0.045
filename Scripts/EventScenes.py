@@ -6,6 +6,7 @@ from Game_Data import ImageObject, Button, SupportVariables
 from Labels import AppearingLabel,InputArea
 from Groups import Input_group,Overworld_items_group
 from Items import Equipment_Items,Items_group
+from Dialogue_Handler import Test
 from LevelHandler import LevelHandler
 import random
 class Scene:
@@ -28,8 +29,8 @@ class Bile(Scene):
                 self.levelHandler.current_room -=1
                 self.levelHandler.load_corridor(Player0.Data['Corridor'])
             if self.Button2.update():
-                SupportVariables.door = 'Bile'
-                self.scene_manager.create_scene('Battle')
+               SupportVariables.current_enemy = 'Bile'
+               self.scene_manager.create_scene('Battle')
             self.Label.dynamic_render(False,True,True,True)
 class Fireplace(Scene):
     def __init__(self,scene_manager=None,player=None):
@@ -64,7 +65,12 @@ class Riddle(Scene):
         self.wrong_answer_label = AppearingLabel(0.03,"Wrong",'white',WINDOW_WIDTH/1.4,WINDOW_HEIGHT/7,80)
         self.checked=False
         self.Reward = None
+        self.test_dialogue = Test()
+        self.run_dialogue = False
     def run(self):
+        if pygame.mouse.get_pressed()[0] and self.Riddler.rect.collidepoint(pygame.mouse.get_pos()):
+            self.run_dialogue = True
+
         self.Riddler.animate()
         self.label.dynamic_render(False,False,False,True)
         self.Riddler.animation_play(2,4,'','',Settings.dt,False,True,6) if not self.checked else \
@@ -96,6 +102,7 @@ class Riddle(Scene):
                     self.scene_manager.create_scene('Corridor')
                     Input_group.remove(self.input)
                     self.checked=False
+        self.test_dialogue.update() if self.run_dialogue else None
 
     def check_answer(self):
         if not self.checked:
