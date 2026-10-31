@@ -20,4 +20,4 @@ class Player:
         self.Data['Corridor'] = [None,None,None]
         self.Data['Items']=[]
     def get_value(self,key,item_key=None):
-        return self.Data[key] if isinstance(self.Data[key],int) else self.Data[key][item_key]
+        return max(self.Data[key],0) if isinstance(self.Data[key],int) else self.Data[key][item_key]

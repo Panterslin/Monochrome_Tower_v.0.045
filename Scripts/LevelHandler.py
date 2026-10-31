@@ -162,11 +162,11 @@ class LevelHandler:
                 info[1] = min(info[1], 0)
                 info[0]=0
 Levels = {
-    'floor1':lambda:LevelHandler(data_corridor={'Door10':[30,6],'Door0':[40,10],'Door20':[50,8],'Boss':[0,1]}
+    'floor1':lambda:LevelHandler(data_corridor={'Door10':[30,6],'Door0':[30,10],'Door20':[30,8],'Boss':[0,1]}
     ,data_room={'Door10':{'FatRat':[50,10,'Battle'],'Riddle':[80,2],'Elite':[10,1],'Chest':[20,4]},
       'Door0':{'Bottles':[40,10],'Rat':[40,10,'Battle'],'FatRat':[10,2,'Battle'],'Note':[10,1]},
-      'Door20':{'DecayingRat':[50,10,'Battle'],'BlightMother':[10,1],'Shop':[10,1],'Fireplace':[50,1],
-                'Bile':[50,1]},'Boss':{'Boss':[0,1,'Battle']}},room_count=8)
+      'Door20':{'DecayingRat':[40,10,'Battle'],'BlightMother':[0,1],'Shop':[0,1],'Fireplace':[40,1],
+                'Bile':[40,10]},'Boss':{'Boss':[0,1,'Battle']}},room_count=8)
 
 
 }

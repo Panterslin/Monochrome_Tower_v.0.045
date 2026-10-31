@@ -86,9 +86,7 @@ class Menu(Scene):
     def run(self):
 
         self.attack_board.update(Settings.dt)
-        self.cursor.animation_play(anim_speed=0.5,dt=Settings.dt)
         self.title_label.update(lambda label: label.dynamic_render())
-        self.cursor.update(Cursor.show,self.attack_board.rect)
         if self.cursor.collide_with_projectiles(self.attack_board.projectiles):
             self.cursor.player_cursor_death()
         global Game_ID
@@ -117,6 +115,10 @@ class Menu(Scene):
             else:
                 screen.fill('black')
                 self.label.dynamic_render(False,True,True)
+
+        self.cursor.update(Cursor.show, self.attack_board.rect,img_size=1)
+        #self.cursor.animation_play(anim_speed=0.5,dt=Settings.dt,visibility=False)
+
 class Corridor(Scene):
     def __init__(self, display, scene_manager,player):
         super().__init__(display, scene_manager)
@@ -274,6 +276,9 @@ class Inventory(Scene):
             self.bottle = OneTimeUseItems['Bottle']()
             self.bottle2 = OneTimeUseItems['Bottle']()
             self.bottle3 = OneTimeUseItems['Bottle']()
+            self.kefir1 = OneTimeUseItems['Kefir']()
+            OneTimeUseItems['Kefir']()
+            OneTimeUseItems['Kefir']()
             self.helmet2 = Equipment_Items['Helmet']()
             self.pill = OneTimeUseItems['Powdered Happiness']()
             print(Player0.Data['Items'])

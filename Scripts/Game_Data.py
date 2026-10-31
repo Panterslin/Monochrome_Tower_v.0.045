@@ -63,7 +63,7 @@ SupportVariables=SupportVariables()
 current_player=Player0
 
 class ImageObject(pygame.sprite.Sprite):
-    def __init__(self,image_folder_name:str, image_name:str, x,y,ignore_groups=False):
+    def __init__(self,image_folder_name:str, image_name:str, x,y,image_size=1,ignore_groups=False):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
         #Buttons_group.add(self) if not ignore_groups else None
@@ -72,6 +72,7 @@ class ImageObject(pygame.sprite.Sprite):
         self.frame=1
         self.image_name = image_name
         self.x = x
+        self.image_size = image_size
         self.y = y
         try:
             if self.anim_name is not None:
@@ -87,6 +88,7 @@ class ImageObject(pygame.sprite.Sprite):
                 self.image = pygame.image.load(os.path.join(ROOT_DIR,image_folder_name, image_name,
                                                     image_name + str(int(self.frame)) + ".png")).convert_alpha()
 
+        self.image = pygame.transform.scale_by(self.image, self.image_size)
         self.rect = self.image.get_frect(center=(x,y))
         self.mask = pygame.mask.from_surface(self.image)
         self.mask_sur = self.create_mask_surface()
@@ -99,8 +101,8 @@ class ImageObject(pygame.sprite.Sprite):
         self.image.set_alpha(image_alpha) if image_alpha is not None else None
         return mask_sur
 class AnimatedObject(ImageObject):
-    def __init__(self,image_folder_name,image_name:str, x=0,y=0,alt_image=""):
-        super().__init__(image_folder_name,image_name,x,y)
+    def __init__(self,image_folder_name,image_name:str, x=0,y=0,alt_image="",image_size=1):
+        super().__init__(image_folder_name,image_name,x,y,image_size=image_size)
         self.is_animating=False
         self.anim_name =''
         self.frame = 1
@@ -131,14 +133,16 @@ class AnimatedObject(ImageObject):
                 else:
                     self.image=pygame.image.load(join(ROOT_DIR,self.image_folder_name, self.image_name, self.image_name + self.anim_name + str(int(self.frame)) + ".png")).convert()
             self.frame+=anim_speed*dt*3
+
+            if self.image_size is not None:
+                self.image = pygame.transform.scale_by(self.image, self.image_size)
+                self.rect = self.image.get_frect(topleft=(self.x, self.y))
             if align_type == 'center':
-                self.rect = self.image.get_frect(center=(self.x,self.y))
+                self.rect = self.image.get_frect(center=(self.x, self.y))
             else:
                 self.rect = self.image.get_frect(topleft=(self.x, self.y))
-            if image_size is not None:
-                self.image = pygame.transform.scale_by(self.image, image_size)
-                self.rect = self.image.get_frect(topleft=(self.x, self.y))
             if visibility:
+                #self.image = pygame.transform.scale_by(self.image, self.image_size)
                 screen.blit(self.image,self.rect)
             if frames + 1 <= self.frame:
                 self.frame=1
@@ -147,17 +151,17 @@ class AnimatedObject(ImageObject):
         return end
 class Cursor(AnimatedObject):
     def __init__(self):
-        super().__init__(image_folder_name='UI',image_name='Heart_Pulse')
+        super().__init__(image_folder_name='UI',image_name='Heart_Pulse',image_size=0.5)
         self.image= pygame.surface.Surface((10,10))
         self.image = pygame.image.load(join(ROOT_DIR,'UI','Heart_Pulse','Heart_Pulse1.png')).convert_alpha()
         #self.image.set_alpha(0)
         #self.image.fill('red')
         self.rect = self.image.get_frect()
         self.mask = pygame.mask.from_surface(self.image)
-    def update(self,func=None,*args):
+    def update(self,func=None,*args,img_size=0.5):
         if not self.is_animating:
             self.animate()
-        self.animation_play(image_size=0.5,visibility=False)
+        self.animation_play(image_size=img_size,visibility=False)
         self.image.set_alpha(0)
         self.rect.topleft = pygame.mouse.get_pos()
         if func is not None:

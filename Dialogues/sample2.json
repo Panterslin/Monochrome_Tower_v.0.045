@@ -5,7 +5,7 @@
         "nodeType": 1,
         "responses": [],
         "selected_callbacks": [],
-        "text": "When I am ready"
+        "text": "Why do you talk like that?"
     },
     {
         "id": 0,
@@ -15,8 +15,10 @@
             2,
             3
         ],
-        "selected_callbacks": [],
-        "text": "say gex?"
+        "selected_callbacks": [
+
+        ],
+        "text": "Hush, I shall not speak to the ones who are not ready."
     },
     {
         "id": 2,
@@ -32,7 +34,7 @@
         "nodeType": 1,
         "responses": [],
         "selected_callbacks": [],
-        "text": "Yes"
+        "text": "I understand"
     },
     {
         "id": 5,
@@ -44,7 +46,7 @@
             8
         ],
         "selected_callbacks": [],
-        "text": "When?"
+        "text": "You do not truly"
     },
     {
         "id": 6,
@@ -52,7 +54,7 @@
         "nodeType": 1,
         "responses": [],
         "selected_callbacks": [],
-        "text": "Yes"
+        "text": "..."
     },
     {
         "id": 7,
@@ -60,7 +62,7 @@
         "nodeType": 1,
         "responses": [],
         "selected_callbacks": [],
-        "text": "Now"
+        "text": "This is tiring"
     },
     {
         "id": 9,
@@ -68,24 +70,24 @@
         "nodeType": 0,
         "responses": [],
         "selected_callbacks": [
-            "triggerScene_Battle_Bile"
+            "triggerScene_Battle_Riddler"
         ],
-        "text": "Fuck you man"
+        "text": "Silence!"
     },
     {
         "id": 10,
         "nextNodeId": -1,
         "nodeType": 0,
         "responses": [],
-        "selected_callbacks": [],
-        "text": "Nice"
+        "selected_callbacks": ["triggerScene_Riddle_None"],
+        "text": "Good"
     },
     {
         "id": 11,
         "nextNodeId": -1,
         "nodeType": 0,
         "responses": [],
-        "selected_callbacks": [],
-        "text": "Don't edge me like that"
+        "selected_callbacks": ["triggerScene_Riddle_None"],
+        "text": "Oh wretched being, you lack wisdom"
     }
 ]

@@ -1,25 +1,25 @@
 {
-    "HP": 100,
-    "Sanity": 80,
-    "Max_HP": 120,
+    "HP": 140,
+    "Sanity": 150,
+    "Max_HP": 100,
     "Max_Sanity": 150,
-    "Defense": 20,
+    "Defense": 0,
     "Money": 0,
     "Current_Floor": 1,
-    "Current_Room": 8,
+    "Current_Room": 2,
     "Level": 1,
     "Experience": 0,
     "Items": [
         "Test_Note",
         "Bottle",
         "Bottle",
-        "Helmet_equipped",
-        "Powdered Happiness",
-        "Crusade_equipped"
+        "Kefir",
+        "Helmet",
+        "Powdered Happiness"
     ],
     "Corridor": [
-        null,
-        "Boss",
-        null
+        "Door0",
+        "Door10",
+        "Door0"
     ]
 }

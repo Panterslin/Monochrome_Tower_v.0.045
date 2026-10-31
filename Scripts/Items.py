@@ -599,6 +599,9 @@ OneTimeUseItems = {
     'Powdered Happiness':lambda:OnetimeUseItem('Items','Powdered Happiness',[Items_group,OneTimeUseItems_group],
     Player0.Data,'clamp-',0,'Item:powdered happiness\n prevents the loss of sanity\n duration:3 rooms',Inventory_slots,target_keys=['Sanity'],
     duration=3,duration_unit='Current_Room',class_targets=[Player0]),
+    'Kefir':lambda:OnetimeUseItem('Items','Kefir',
+[Items_group,OneTimeUseItems_group],Player0.Data,'++',20,'Item:Kefir\n'
+    'All hail Kefir\n+20 Health(overheal)',Inventory_slots,target_keys=['HP'])
 
 }
 Equipment_Items = {

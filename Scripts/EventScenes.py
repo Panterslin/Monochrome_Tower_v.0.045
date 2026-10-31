@@ -59,7 +59,7 @@ class Riddle(Scene):
         super().__init__(scene_manager)
         self.input = InputArea('white',FONT_PATH,220,WINDOW_HEIGHT-200, 80,(1000,150),(20,WINDOW_HEIGHT),True,'black')
         Input_group.add(self.input)
-        self.Riddler = AnimatedObject('NPCS','Riddler',WINDOW_WIDTH/2,WINDOW_HEIGHT-750)
+        self.Riddler = AnimatedObject('NPCS','Riddler',WINDOW_WIDTH/2,WINDOW_HEIGHT-750,image_size=6)
         self.Riddle = random.choice(Active_Riddles)
         self.label = AppearingLabel(0.03,self.Riddle[1],'white',100,100,60)
         self.wrong_answer_label = AppearingLabel(0.03,"Wrong",'white',WINDOW_WIDTH/1.4,WINDOW_HEIGHT/7,80)

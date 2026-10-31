@@ -1,6 +1,6 @@
 {
     "HP": 100,
-    "Sanity": -20,
+    "Sanity": 100,
     "Max_HP": 100,
     "Max_Sanity": 150,
     "Defense": 0,

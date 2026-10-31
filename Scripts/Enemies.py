@@ -258,8 +258,8 @@ Enemy_Movesets = \
 
 }
 class Enemy(AnimatedObject):
-    def __init__(self,image_folder_name,image_name,hp,max_hp,damage,value=10,moveset=(('Default','D'),('Special','S')),anim_frames=2,x=WINDOW_WIDTH/1.5,y=WINDOW_HEIGHT/1.9,no_background=False):
-        super().__init__(image_folder_name,image_name,x,y)
+    def __init__(self,image_folder_name,image_name,hp,max_hp,damage,value=10,moveset=(('Default','D'),('Special','S')),anim_frames=2,x=WINDOW_WIDTH/1.5,y=WINDOW_HEIGHT/1.9,no_background=False,image_size=1):
+        super().__init__(image_folder_name,image_name,x,y,image_size=image_size)
         self.hp = hp
         self.damage = damage
         self.value = value
@@ -335,6 +335,9 @@ Enemies = {
     'DecayingRat': lambda: Enemy('Enemies','DecayingRat',40,40,45,20),
     'Boss': lambda: Enemy('Enemies','RatKing',250,250,30,0,(('Default','Shank'),('Special','Gutting',1,3)),
                           2,WINDOW_WIDTH/1.5,WINDOW_HEIGHT/2.2,True),
-    'Bile':lambda:Enemy('Enemies','Bile',700,700,60,100,(('Default','Vomit',1,4),('Special','Harm',1.5,3)),8,
-                        WINDOW_WIDTH/2,WINDOW_HEIGHT/2.2,True)
+    'Bile':lambda:Enemy('Enemies','Bile',700,700,60,100,(('Default','Vomit',1,2),('Special','Harm',1.5,3)),8,
+                        WINDOW_WIDTH/2,WINDOW_HEIGHT/2.2,True),
+    'Riddler':lambda:Enemy('Enemies','Riddler',500,500,40,100,(('Default','Riddle',1,2),('Special','Conundrum',1.5,3)),2,
+                        WINDOW_WIDTH/2,WINDOW_HEIGHT/2.2,True,8)
+
 }
